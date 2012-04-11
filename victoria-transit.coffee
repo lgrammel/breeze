@@ -16,19 +16,18 @@ transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
 
-svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
-
-resultHandler = (routes) ->
+createLineLayer = (routes) ->
+  svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
   line = (d) => svgLine(d.paths.map((d) => map.locationPoint(d)))
-
   lineLayer = d3.select("#map svg").insert("svg:g")
-
   lineLayer.selectAll("g").data(routes).enter()
   .append("path")
   .attr("class", "route")
   .attr("d", (d) => line(d))
-
   map.on("move", -> lineLayer.selectAll("path").attr("d", (d) => line(d)))
+
+resultHandler = (routes) ->
+  createLineLayer routes
 
 map.add(po.compass().pan("none"))
 
