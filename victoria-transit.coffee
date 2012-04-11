@@ -19,15 +19,28 @@ transform = (location) ->
 createLineLayer = (routes) ->
   svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
   line = (d) => svgLine(d.paths.map((d) => map.locationPoint(d)))
-  lineLayer = d3.select("#map svg").insert("svg:g")
-  lineLayer.selectAll("g").data(routes).enter()
-  .append("path")
-  .attr("class", "route")
-  .attr("d", (d) => line(d))
-  map.on("move", -> lineLayer.selectAll("path").attr("d", (d) => line(d)))
+  layer = d3.select("#map svg").insert("svg:g")
+  layer.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => line(d))
+  map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
+
+createBusStopLayer = (routes) ->
+  # transform routes to list of bus stops
+  routes.forEach (route) ->
+    route.stops.map (stop) ->
+      stop.route = route.route
+      stop
+
+  stops = d3.merge(routes.map (route) -> route.stops)
+
+  # circles on map
+  layer = d3.select("#map svg").insert("svg:g")
+  marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+  marker.append("circle").attr("class", "stop").attr('r', 4.5)
+  map.on("move", -> layer.selectAll("g").attr("transform", transform))
 
 resultHandler = (routes) ->
   createLineLayer routes
+  createBusStopLayer routes
 
 map.add(po.compass().pan("none"))
 

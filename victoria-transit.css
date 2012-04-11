@@ -12,5 +12,11 @@ html, body, #map {
 .route {
     fill: none;
     stroke: #a00;
-    stroke-width: 4;
+    stroke-width: 2.5;
+}
+
+.stop {
+    fill: #a00;
+    stroke: black;
+    stroke-width: 1;
 }
