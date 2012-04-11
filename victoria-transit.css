@@ -1,0 +1,16 @@
+html, body, #map {
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    overflow: hidden;
+}
+
+.route {
+    fill: none;
+    stroke: #a00;
+    stroke-width: 4;
+}
