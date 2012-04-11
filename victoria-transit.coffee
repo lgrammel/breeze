@@ -16,29 +16,19 @@ transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
 
-resultHandler = (routes) ->
-  data = routes[0].paths
+svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
 
-  # create line
-  line = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
-  mappedLine = (d) =>
-    line(data.map((d) => map.locationPoint(d)))
+resultHandler = (routes) ->
+  line = (d) => svgLine(d.paths.map((d) => map.locationPoint(d)))
+
   lineLayer = d3.select("#map svg").insert("svg:g")
 
-  lineLayer.selectAll("g").data([data]).enter()
+  lineLayer.selectAll("g").data(routes).enter()
   .append("path")
   .attr("class", "route")
-  .attr("d", (d) => mappedLine(d))
+  .attr("d", (d) => line(d))
 
-  map.on("move", ->
-      lineLayer.selectAll("path").attr("d", (d) => mappedLine(d))
-  )
-
-  # Insert our layer beneath the compass.
-  layer = d3.select("#map svg").insert("svg:g")
-
-  marker = layer.selectAll("g").data(data).enter().append("g").attr("transform", transform)
-  map.on("move", -> layer.selectAll("g").attr("transform", transform))
+  map.on("move", -> lineLayer.selectAll("path").attr("d", (d) => line(d)))
 
 map.add(po.compass().pan("none"))
 
