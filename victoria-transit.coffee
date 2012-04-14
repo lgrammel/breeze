@@ -11,7 +11,14 @@ map = po.map().container(d3.select("#map").append("svg:svg").node())
 # Stamen toner tiles http://maps.stamen.com
 map.add(po.image().url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
 
-# Lat/Lng transform function
+# Calculates pixel for 1km distance
+# http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
+# assume you can walk 500m in 6min, this seems to be a good distance
+reachableDistanceFromStop  = () ->
+  pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
+  0.5 * pixelsPerKm
+
+  # Lat/Lng transform function
 transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
@@ -36,11 +43,16 @@ createBusStopLayer = (routes) ->
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle").attr("class", "stop").attr('r', 4.5)
-  map.on("move", -> layer.selectAll("g").attr("transform", transform))
+  marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
+  map.on("move", ->
+    layer.selectAll("g").attr("transform", transform)
+    layer.selectAll("g").selectAll("circle.reach").attr('r', reachableDistanceFromStop)
+  )
 
 resultHandler = (routes) ->
   createLineLayer routes
   createBusStopLayer routes
+
 
 map.add(po.compass().pan("none"))
 

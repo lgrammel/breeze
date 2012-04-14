@@ -20,3 +20,7 @@ html, body, #map {
     stroke: black;
     stroke-width: 1;
 }
+
+.reach {
+    fill: rgba(0,100,0,0.2);
+}
