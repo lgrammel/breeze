@@ -48,6 +48,11 @@ createBusStopLayer = (stops) ->
     layer.selectAll("g").attr("transform", transform)
   )
 
+  $(".stop").qtip(
+    content:
+      attr: 'text'
+  )
+
 # separate layer so it can be drawn underneath the bus stop layer
 createBusStopReachLayer = (stops) ->
   layer = d3.select("#map svg").insert("svg:g")
