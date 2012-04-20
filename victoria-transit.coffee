@@ -38,7 +38,6 @@ createBusRouteLayer = (routes, stops) ->
   map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
 
 createBusStopLayer = (stops) ->
-    # circles on map
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle")
@@ -53,12 +52,10 @@ createBusStopLayer = (stops) ->
 createBusStopReachLayer = (stops) ->
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-  marker.append("circle") # reach needs to come first so its underneath the circle...
-    .attr("class", "reach")
-    .attr('r', reachableDistanceFromStop)
+  marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
   map.on("move", ->
     layer.selectAll("g").attr("transform", transform)
-    layer.selectAll("g").selectAll("circle.reach").attr('r', reachableDistanceFromStop)
+         .selectAll("circle.reach").attr('r', reachableDistanceFromStop)
   )
 
 map.add(po.compass().pan("none"))
