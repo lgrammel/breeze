@@ -38,6 +38,7 @@ createBusRouteLayer = (routes, stops) ->
   map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
 
 createBusStopLayer = (stops) ->
+  # TODO just have a single g element that is transformed
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle")
@@ -55,6 +56,7 @@ createBusStopLayer = (stops) ->
 
 # separate layer so it can be drawn underneath the bus stop layer
 createBusStopReachLayer = (stops) ->
+  # TODO just have a single g element that is transformed
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
@@ -62,8 +64,6 @@ createBusStopReachLayer = (stops) ->
     layer.selectAll("g").attr("transform", transform)
          .selectAll("circle.reach").attr('r', reachableDistanceFromStop)
   )
-
-map.add(po.compass().pan("none"))
 
 do -> d3.json('data/uvic_transit.json', (json) ->
   # order of layers important because of SVG drawing
