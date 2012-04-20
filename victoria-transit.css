@@ -11,7 +11,7 @@ html, body, #map {
 
 .route {
     fill: none;
-    stroke: #a00;
+    stroke: #600;
     stroke-width: 2.5;
 }
 
