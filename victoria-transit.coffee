@@ -23,22 +23,23 @@ transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
 
-createLineLayer = (routes) ->
+createBusRouteLayer = (routes, stops) ->
+  # TODO prevent overplotting by intelligently selecting route segments between stops
+  # map stops by their id
+  stopsById = {}
+  stops.forEach((stop) ->
+    stopsById[stop.id] = stop
+  )
+
+  console.log stopsById
+
   svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
-  line = (d) => svgLine(d.paths.map((d) => map.locationPoint(d)))
+  line = (route) => svgLine(route.stops.map((routeStop) => map.locationPoint(stopsById[routeStop.point_id])))
   layer = d3.select("#map svg").insert("svg:g")
   layer.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => line(d))
   map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
 
-createBusStopLayer = (routes) ->
-  # transform routes to list of bus stops
-  routes.forEach (route) ->
-    route.stops.map (stop) ->
-      stop.route = route.route
-      stop
-
-  stops = d3.merge(routes.map (route) -> route.stops)
-
+createBusStopLayer = (stops) ->
   # circles on map
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
@@ -49,11 +50,9 @@ createBusStopLayer = (routes) ->
     layer.selectAll("g").selectAll("circle.reach").attr('r', reachableDistanceFromStop)
   )
 
-resultHandler = (routes) ->
-  createLineLayer routes
-  createBusStopLayer routes
-
-
 map.add(po.compass().pan("none"))
 
-do -> d3.json('data/uvic_transit.json', resultHandler)
+do -> d3.json('data/uvic_transit.json', (json) ->
+  createBusRouteLayer(json.routes,json.stops)
+  createBusStopLayer(json.stops)
+)
