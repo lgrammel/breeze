@@ -31,8 +31,6 @@ createBusRouteLayer = (routes, stops) ->
     stopsById[stop.id] = stop
   )
 
-  console.log stopsById
-
   svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
   line = (route) => svgLine(route.stops.map((routeStop) => map.locationPoint(stopsById[routeStop.point_id])))
   layer = d3.select("#map svg").insert("svg:g")
