@@ -11,12 +11,14 @@ map = po.map().container(d3.select("#map").append("svg:svg").node())
 # Stamen toner tiles http://maps.stamen.com
 map.add(po.image().url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
 
+# assume you can walk 500m in 6min, this seems to be a good default distance
+distanceInMeters = 500
+
 # Calculates pixel for 1km distance
 # http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
-# assume you can walk 500m in 6min, this seems to be a good distance
 reachableDistanceFromStop  = () ->
   pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
-  0.5 * pixelsPerKm
+  distanceInMeters / 1000 * pixelsPerKm
 
   # Lat/Lng transform function
 transform = (location) ->
@@ -54,20 +56,47 @@ createBusStopLayer = (stops) ->
       attr: 'text'
   )
 
+distanceLayer = false # set later
+updateDistance = () ->
+  distanceLayer.selectAll("circle.reach").attr('r', reachableDistanceFromStop) if distanceLayer
+
 # separate layer so it can be drawn underneath the bus stop layer
 createBusStopReachLayer = (stops) ->
   # TODO just have a single g element that is transformed
-  layer = d3.select("#map svg").insert("svg:g")
-  marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+  distanceLayer = d3.select("#map svg").insert("svg:g")
+  marker = distanceLayer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
   map.on("move", ->
-    layer.selectAll("g").attr("transform", transform)
-         .selectAll("circle.reach").attr('r', reachableDistanceFromStop)
+    distanceLayer.selectAll("g").attr("transform", transform)
+    updateDistance()
   )
 
-do -> d3.json('data/uvic_transit.json', (json) ->
-  # order of layers important because of SVG drawing
-  createBusStopReachLayer(json.stops)
-  createBusRouteLayer(json.routes,json.stops)
-  createBusStopLayer(json.stops)
-)
+# TODO decouple using events, e.g. from backbone --> route event, location, zoom on url
+setupDistanceSlider = () ->
+  # TODO support multiple event listers
+  sliderChanged = (value) ->
+    $( "#slider-distance > .value" ).html( value + "m" )
+    distanceInMeters = value
+    updateDistance()
+
+  $("#slider-distance-element").slider(
+    range: "min"
+    value: distanceInMeters
+    min: 0
+    max: 2500
+    slide: (event, ui) -> sliderChanged(ui.value)
+  )
+
+  sliderChanged($("#slider-distance-element").slider("value"))
+
+loadJson = () ->
+  d3.json('data/uvic_transit.json', (json) ->
+    # order of layers important because of SVG drawing
+    createBusStopReachLayer(json.stops)
+    createBusRouteLayer(json.routes,json.stops)
+    createBusStopLayer(json.stops)
+  )
+
+do ->
+  setupDistanceSlider()
+  loadJson()

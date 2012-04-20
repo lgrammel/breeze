@@ -16,6 +16,8 @@
     <script type="text/javascript" src="lib/jquery-1.7.2.min.js" ></script>
     <script type="text/javascript" src="lib/jquery.qtip.min.js" ></script>
     <link rel="stylesheet" type="text/css" href="lib/jquery.qtip.min.css">
+    <script type="text/javascript" src="lib/jquery-ui-1.8.19.slider.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="lib/smoothness/jquery-ui-1.8.19.slider.css">
 
     <link rel="stylesheet" type="text/css" href="victoria-transit.css">
 
@@ -26,6 +28,11 @@
   <div id="map"></div>
   <div class="header">
       <div class="title">UVic Bus Visualization</div>
+      <!-- TODO fix CSS for slider -->
+      <div class="slider" id="slider-distance">
+          <span class="label">Distance</span><span class="value"></span>
+          <div id="slider-distance-element"></div>
+      </div>
   </div>
 </body>
 </html>
