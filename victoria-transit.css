@@ -9,6 +9,25 @@ html, body, #map {
     overflow: hidden;
 }
 
+.header {
+    left: 0px;
+    top: 0px;
+    background: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid gray;
+    border-top: 0px;
+    border-left: 0px;
+    position: absolute;
+    padding: 10px;
+    color:white;
+    font-family: Arial, sans-serif;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
 .route {
     fill: none;
     stroke: #600;
