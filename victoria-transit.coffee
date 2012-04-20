@@ -38,11 +38,24 @@ createBusRouteLayer = (routes, stops) ->
   map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
 
 createBusStopLayer = (stops) ->
-  # circles on map
+    # circles on map
   layer = d3.select("#map svg").insert("svg:g")
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-  marker.append("circle").attr("class", "stop").attr('r', 4.5)
-  marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
+  marker.append("circle")
+  .attr("class", "stop")
+  .attr('r', 4.5)
+  .attr("text", (stop) => stop.routes)
+  map.on("move", ->
+    layer.selectAll("g").attr("transform", transform)
+  )
+
+# separate layer so it can be drawn underneath the bus stop layer
+createBusStopReachLayer = (stops) ->
+  layer = d3.select("#map svg").insert("svg:g")
+  marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+  marker.append("circle") # reach needs to come first so its underneath the circle...
+    .attr("class", "reach")
+    .attr('r', reachableDistanceFromStop)
   map.on("move", ->
     layer.selectAll("g").attr("transform", transform)
     layer.selectAll("g").selectAll("circle.reach").attr('r', reachableDistanceFromStop)
@@ -51,6 +64,8 @@ createBusStopLayer = (stops) ->
 map.add(po.compass().pan("none"))
 
 do -> d3.json('data/uvic_transit.json', (json) ->
+  # order of layers important because of SVG drawing
+  createBusStopReachLayer(json.stops)
   createBusRouteLayer(json.routes,json.stops)
   createBusStopLayer(json.stops)
 )
