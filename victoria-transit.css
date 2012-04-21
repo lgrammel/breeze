@@ -30,22 +30,23 @@ html, body, #map {
 
 .route {
     fill: none;
-    stroke: #600;
+    stroke: #660;
     stroke-width: 2.5;
 }
 
 .stop {
-    fill: #a00;
+    fill : #990;
     stroke: black;
     stroke-width: 1;
 }
 
 .rental {
-	fill : #cc0;
+    fill: #d00;
 	stroke: black;
 	stroke-width: 1;
+    cursor: pointer;
 }
 
 .reach {
-    fill: rgba(0,100,0,0.2);
+    fill: rgba(120,120,0,0.2);
 }
