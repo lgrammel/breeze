@@ -88,6 +88,29 @@ setupDistanceSlider = () ->
   )
 
   sliderChanged($("#slider-distance-element").slider("value"))
+  
+createRentalsLayer = (rentals) ->
+  # TODO just have a single g element that is transformed
+  rentalLayer = d3.select("#map svg").insert("svg:g")
+  marker = rentalLayer.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
+  marker.append("rect")
+  .attr("class", "rental")
+  .attr('height', 6)
+  .attr('width', 6)
+  .attr("text", (rentals) => 
+    (" " + suite.bedrooms + " bedroom: $" + suite.price) for suite in rentals.availabilities
+  )
+  .on("dblclick", (rentals) ->
+    window.open(rentals.url)
+  )
+  map.on("move", ->
+    rentalLayer.selectAll("g").attr("transform", transform)
+  )
+  
+  $(".rental").qtip(
+    content:
+      attr: 'text'
+  )
 
 loadJson = () ->
   d3.json('data/uvic_transit.json', (json) ->
@@ -95,6 +118,11 @@ loadJson = () ->
     createBusStopReachLayer(json.stops)
     createBusRouteLayer(json.routes,json.stops)
     createBusStopLayer(json.stops)
+    
+    # We need to ensure that rentals are added last, so they aren't occuded by the previous layers. Terrible on my part.
+    d3.json('data/rentals.json', (json) ->
+      createRentalsLayer(json)
+    )
   )
 
 do ->
