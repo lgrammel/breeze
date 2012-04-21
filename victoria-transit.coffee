@@ -45,7 +45,7 @@ createBusStopLayer = (stops) ->
   marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle")
   .attr("class", "stop")
-  .attr('r', 4.5)
+  .attr('r', 3.5)
   .attr("text", (stop) => stop.routes)
   map.on("move", ->
     layer.selectAll("g").attr("transform", transform)
@@ -95,12 +95,14 @@ createRentalsLayer = (rentals) ->
   marker = rentalLayer.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
   marker.append("rect")
   .attr("class", "rental")
-  .attr('height', 6)
-  .attr('width', 6)
+  .attr("x", -8/2)
+  .attr("y", -8/2)
+  .attr('height', 8)
+  .attr('width', 8)
   .attr("text", (rentals) => 
     (" " + suite.bedrooms + " bedroom: $" + suite.price) for suite in rentals.availabilities
   )
-  .on("dblclick", (rentals) ->
+  .on("click", (rentals) ->
     window.open(rentals.url)
   )
   map.on("move", ->
