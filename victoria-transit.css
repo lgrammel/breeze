@@ -40,6 +40,12 @@ html, body, #map {
     stroke-width: 1;
 }
 
+.rental {
+	fill : #cc0;
+	stroke: black;
+	stroke-width: 1;
+}
+
 .reach {
     fill: rgba(0,100,0,0.2);
 }
