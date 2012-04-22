@@ -92,6 +92,7 @@ setupDistanceSlider = () ->
 createRentalsLayer = (rentals) ->
   # TODO just have a single g element that is transformed
   rentalLayer = d3.select("#map svg").insert("svg:g")
+  
   marker = rentalLayer.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
   marker.append("rect")
   .attr("class", "rental")
@@ -100,7 +101,7 @@ createRentalsLayer = (rentals) ->
   .attr('height', 8)
   .attr('width', 8)
   .attr("text", (rentals) => 
-    (" " + suite.bedrooms + " bedroom: $" + suite.price) for suite in rentals.availabilities
+    (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rentals.availabilities
   )
   .on("click", (rentals) ->
     window.open(rentals.url)
