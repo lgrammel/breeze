@@ -47,6 +47,13 @@ html, body, #map {
     cursor: pointer;
 }
 
+.rental-viewed {
+    fill: #800;
+    stroke: black;
+    stroke-width: 1;
+    cursor: pointer;
+}
+
 .reach {
     fill: rgba(120,120,0,0.2);
 }
