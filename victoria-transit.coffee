@@ -20,14 +20,12 @@ transform = (location) ->
 class Layer
   constructor: ->
     @selector = d3.select("#map svg").insert("svg:g")
+    map.on "move", => @update()
 
 class DistanceLayer extends Layer
-  constructor: ->
-    super
-    map.on("move", =>
-      @selector.selectAll("g").attr("transform", transform)
-      @updateCircleRadius()
-    )
+  update: ->
+    @selector.selectAll("g").attr("transform", transform)
+    @updateCircleRadius()
 
   distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   distanceInMeters: () ->
@@ -53,6 +51,9 @@ class DistanceLayer extends Layer
     marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
 
 class BusRouteLayer extends Layer
+  svgLine = d3.svg.line().x((d) -> d.x).y((d) -> d.y).interpolate("linear")
+
+  update: () -> @selector.selectAll("path").attr("d", (d) => @line(d))
   addRoutes: (routes, stops) ->
     # TODO prevent overplotting by intelligently selecting route segments between stops
     # map stops by their id
@@ -61,20 +62,11 @@ class BusRouteLayer extends Layer
       stopsById[stop.id] = stop
     )
 
-    svgLine = d3.svg.line().x((d) -> d.x).y((d) -> d.y).interpolate("linear")
-    line = (route) -> svgLine(route.stops.map((routeStop) -> map.locationPoint(stopsById[routeStop.point_id])))
-    @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) -> line(d))
-    # XXX should not be called multiple times
-    map.on("move", =>
-      @selector.selectAll("path").attr("d", (d) -> line(d))
-    )
+    @line = (route) -> svgLine(route.stops.map((routeStop) -> map.locationPoint(stopsById[routeStop.point_id])))
+    @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
 class BusStopLayer extends Layer
-  constructor: ->
-    super
-    map.on("move", =>
-      @selector.selectAll("g").attr("transform", transform)
-    )
+  update: -> @selector.selectAll("g").attr("transform", transform)
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
@@ -86,11 +78,7 @@ class BusStopLayer extends Layer
     )
 
 class RentalsLayer extends Layer
-  constructor: ->
-    super
-    map.on("move", =>
-      @selector.selectAll("g").attr("transform", transform)
-    )
+  update: -> @selector.selectAll("g").attr("transform", transform)
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
