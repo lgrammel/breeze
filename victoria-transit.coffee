@@ -24,23 +24,33 @@ class Layer
 class DistanceLayer extends Layer
   constructor: ->
     super
-    # assume you can walk 500m in 6min, this seems to be a good default distance
     map.on("move", =>
       @selector.selectAll("g").attr("transform", transform)
       @update()
     )
-  distanceInMeters: 500
+
+  distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  distanceInMeters: () ->
+    if arguments.length == 0
+      distanceInMeters
+    else
+      distanceInMeters = arguments[0]
+      @update()
+      this
+
+  update: ->
+    @selector.selectAll("circle.reach").attr('r', @getReachableDistanceFromStop())
+
   # Calculates pixel for 1km distance
   # http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
-  reachableDistanceFromStop: () ->
+  getReachableDistanceFromStop: () ->
     pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
-    @distanceInMeters / 1000 * pixelsPerKm
-  update: ->
-    @selector.selectAll("circle.reach").attr('r', @reachableDistanceFromStop())
+    @distanceInMeters() / 1000 * pixelsPerKm
+
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-    marker.append("circle").attr("class", "reach").attr('r', @reachableDistanceFromStop())
+    marker.append("circle").attr("class", "reach").attr('r', @getReachableDistanceFromStop())
 
 class BusRouteLayer extends Layer
   addRoutes: (routes, stops) ->
@@ -113,12 +123,11 @@ setupDistanceSlider = () ->
   # TODO support multiple event listers
   sliderChanged = (value) ->
     $( "#slider-distance > .value" ).html( value + "m" )
-    distanceLayer.distanceInMeters = value
-    distanceLayer.update()
+    distanceLayer.distanceInMeters(value)
 
   $("#slider-distance-element").slider(
     range: "min"
-    value: distanceLayer.distanceInMeters
+    value: distanceLayer.distanceInMeters()
     min: 0
     max: 2500
     slide: (event, ui) -> sliderChanged(ui.value)
