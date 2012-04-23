@@ -25,53 +25,90 @@ transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
 
+# Classes
+class Layer
+  constructor: ->
+    @selector = d3.select("#map svg").insert("svg:g")
+
+class DistanceLayer extends Layer
+  constructor: ->
+    super
+    map.on("move", =>
+      @selector.selectAll("g").attr("transform", transform)
+      @update()
+    )
+  update: ->
+    @selector.selectAll("circle.reach").attr('r', reachableDistanceFromStop)
+  addStops: (stops) ->
+    # TODO just have a single g element that is transformed
+    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+    marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
+
+class BusRouteLayer extends Layer
+  addRoutes: (routes, stops) ->
+    # TODO prevent overplotting by intelligently selecting route segments between stops
+    # map stops by their id
+    stopsById = {}
+    stops.forEach((stop) ->
+      stopsById[stop.id] = stop
+    )
+
+    svgLine = d3.svg.line().x((d) -> d.x).y((d) -> d.y).interpolate("linear")
+    line = (route) -> svgLine(route.stops.map((routeStop) -> map.locationPoint(stopsById[routeStop.point_id])))
+    @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) -> line(d))
+    # XXX should not be called multiple times
+    map.on("move", =>
+      @selector.selectAll("path").attr("d", (d) -> line(d))
+    )
+
+class BusStopLayer extends Layer
+  constructor: ->
+    super
+    map.on("move", =>
+      @selector.selectAll("g").attr("transform", transform)
+    )
+  addStops: (stops) ->
+    # TODO just have a single g element that is transformed
+    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+    marker.append("circle").attr("class", "stop").attr('r', 3.5).attr("text", (stop) -> stop.routes)
+
+    $(".stop").qtip(
+      content:
+        attr: 'text'
+    )
+
+class RentalsLayer extends Layer
+  constructor: ->
+    super
+    map.on("move", =>
+      @selector.selectAll("g").attr("transform", transform)
+    )
+  addRentals: (rentals) ->
+    # TODO just have a single g element that is transformed
+    marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
+    marker.append("rect")
+    .attr("class", "rental")
+    .attr("x", -8/2)
+    .attr("y", -8/2)
+    .attr('height', 8)
+    .attr('width', 8)
+    .attr("text", (rentals) =>
+      (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rentals.availabilities
+    )
+    .on("click", (rentals) ->
+      window.open(rentals.url)
+    )
+
+    $(".rental").qtip(
+      content:
+        attr: 'text'
+    )
+
 # create layers - order of layers important because of SVG drawing
-distanceLayer = d3.select("#map svg").insert("svg:g")
-busRouteLayer = d3.select("#map svg").insert("svg:g")
-busStopLayer = d3.select("#map svg").insert("svg:g")
-rentalLayer = d3.select("#map svg").insert("svg:g")
-
-createBusRouteLayer = (routes, stops) ->
-  # TODO prevent overplotting by intelligently selecting route segments between stops
-  # map stops by their id
-  stopsById = {}
-  stops.forEach((stop) ->
-    stopsById[stop.id] = stop
-  )
-
-  svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
-  line = (route) => svgLine(route.stops.map((routeStop) => map.locationPoint(stopsById[routeStop.point_id])))
-  busRouteLayer.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => line(d))
-  map.on("move", -> busRouteLayer.selectAll("path").attr("d", (d) => line(d)))
-
-createBusStopLayer = (stops) ->
-  # TODO just have a single g element that is transformed
-  marker = busStopLayer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-  marker.append("circle")
-  .attr("class", "stop")
-  .attr('r', 3.5)
-  .attr("text", (stop) => stop.routes)
-  map.on("move", ->
-    busStopLayer.selectAll("g").attr("transform", transform)
-  )
-
-  $(".stop").qtip(
-    content:
-      attr: 'text'
-  )
-
-updateDistance = () ->
-  distanceLayer.selectAll("circle.reach").attr('r', reachableDistanceFromStop) if distanceLayer
-
-# separate layer so it can be drawn underneath the bus stop layer
-createBusStopReachLayer = (stops) ->
-  # TODO just have a single g element that is transformed
-  marker = distanceLayer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-  marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
-  map.on("move", ->
-    distanceLayer.selectAll("g").attr("transform", transform)
-    updateDistance()
-  )
+distanceLayer = new DistanceLayer
+busRouteLayer = new BusRouteLayer
+busStopLayer = new BusStopLayer
+rentalLayer = new RentalsLayer
 
 # TODO decouple using events, e.g. from backbone --> route event, location, zoom on url
 setupDistanceSlider = () ->
@@ -79,7 +116,7 @@ setupDistanceSlider = () ->
   sliderChanged = (value) ->
     $( "#slider-distance > .value" ).html( value + "m" )
     distanceInMeters = value
-    updateDistance()
+    distanceLayer.update()
 
   $("#slider-distance-element").slider(
     range: "min"
@@ -91,41 +128,15 @@ setupDistanceSlider = () ->
 
   sliderChanged($("#slider-distance-element").slider("value"))
   
-createRentalsLayer = (rentals) ->
-  # TODO just have a single g element that is transformed
-  marker = rentalLayer.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
-  marker.append("rect")
-  .attr("class", "rental")
-  .attr("x", -8/2)
-  .attr("y", -8/2)
-  .attr('height', 8)
-  .attr('width', 8)
-  .attr("text", (rentals) => 
-    (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rentals.availabilities
-  )
-  .on("click", (rentals) ->
-    window.open(rentals.url)
-  )
-  map.on("move", ->
-    rentalLayer.selectAll("g").attr("transform", transform)
-  )
-  
-  $(".rental").qtip(
-    content:
-      attr: 'text'
-  )
-
 loadBusRoutes = () ->
-  d3.json('data/uvic_transit.json', (json) ->
-    createBusStopReachLayer(json.stops)
-    createBusRouteLayer(json.routes,json.stops)
-    createBusStopLayer(json.stops)
-  )
+  d3.json 'data/uvic_transit.json', (json) ->
+    distanceLayer.addStops json.stops
+    busRouteLayer.addRoutes json.routes,json.stops
+    busStopLayer.addStops json.stops
 
 loadRentals = () ->
-  d3.json('data/rentals.json', (json) ->
-    createRentalsLayer(json)
-  )
+  d3.json 'data/rentals.json', (json) ->
+    rentalLayer.addRentals json
 
 do ->
   setupDistanceSlider()
