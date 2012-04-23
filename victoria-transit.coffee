@@ -11,20 +11,20 @@ map = po.map().container(d3.select("#map").append("svg:svg").node())
 # Stamen toner tiles http://maps.stamen.com
 map.add(po.image().url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
 
-# Lat/Lng transform function
-transform = (location) ->
-  d = map.locationPoint(location)
-  "translate(" + d.x + "," + d.y + ")"
-
 # Classes
 class Layer
   constructor: ->
     @selector = d3.select("#map svg").insert("svg:g")
     map.on "move", => @update()
 
+  # Lat/Lng transform function
+  transform: (location) ->
+    d = map.locationPoint(location)
+    "translate(" + d.x + "," + d.y + ")"
+
 class DistanceLayer extends Layer
   update: ->
-    @selector.selectAll("g").attr("transform", transform)
+    @selector.selectAll("g").attr("transform", @transform)
     @updateCircleRadius()
 
   distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
@@ -47,7 +47,7 @@ class DistanceLayer extends Layer
 
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
-    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
     marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
 
 class BusRouteLayer extends Layer
@@ -66,10 +66,10 @@ class BusRouteLayer extends Layer
     @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
 class BusStopLayer extends Layer
-  update: -> @selector.selectAll("g").attr("transform", transform)
+  update: -> @selector.selectAll("g").attr("transform", @transform)
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
-    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+    marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
     marker.append("circle").attr("class", "stop").attr('r', 3.5).attr("text", (stop) -> stop.routes)
 
     $(".stop").qtip(
@@ -78,10 +78,10 @@ class BusStopLayer extends Layer
     )
 
 class RentalsLayer extends Layer
-  update: -> @selector.selectAll("g").attr("transform", transform)
+  update: -> @selector.selectAll("g").attr("transform", @transform)
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
-    marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
+    marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
     marker.append("rect")
     .attr("class", "rental")
     .attr("x", -8/2)
