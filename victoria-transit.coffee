@@ -26,7 +26,7 @@ class DistanceLayer extends Layer
     super
     map.on("move", =>
       @selector.selectAll("g").attr("transform", transform)
-      @update()
+      @updateCircleRadius()
     )
 
   distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
@@ -35,7 +35,7 @@ class DistanceLayer extends Layer
       distanceInMeters
     else
       distanceInMeters = arguments[0]
-      @update()
+      @updateCircleRadius()
       this
 
   distanceInPixels: () ->
@@ -44,7 +44,7 @@ class DistanceLayer extends Layer
     pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
     @distanceInMeters() / 1000 * pixelsPerKm
 
-  update: ->
+  updateCircleRadius: ->
     @selector.selectAll("circle.reach").attr('r', @distanceInPixels())
 
   addStops: (stops) ->
