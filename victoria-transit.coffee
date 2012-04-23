@@ -13,13 +13,14 @@ map.add(po.image().url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
 
 # Classes
 class Layer
-  constructor: ->
+  constructor: (@map) ->
     @selector = d3.select("#map svg").insert("svg:g")
-    map.on "move", => @update()
+    @map.on "move", => @update()
+    console.log @map
 
   # Lat/Lng transform function
-  transform: (location) ->
-    d = map.locationPoint(location)
+  transform: (location) =>
+    d = @map.locationPoint(location)
     "translate(" + d.x + "," + d.y + ")"
 
 class DistanceLayer extends Layer
@@ -39,7 +40,7 @@ class DistanceLayer extends Layer
   distanceInPixels: () ->
     # Calculates pixel for 1km distance
     # http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
-    pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
+    pixelsPerKm = @map.locationPoint({ lat: 0, lon: 0.008983 }).x - @map.locationPoint({ lat: 0, lon: 0 }).x
     @distanceInMeters() / 1000 * pixelsPerKm
 
   updateCircleRadius: ->
@@ -62,7 +63,7 @@ class BusRouteLayer extends Layer
       stopsById[stop.id] = stop
     )
 
-    @line = (route) -> svgLine(route.stops.map((routeStop) -> map.locationPoint(stopsById[routeStop.point_id])))
+    @line = (route) -> svgLine(route.stops.map((routeStop) => @map.locationPoint(stopsById[routeStop.point_id])))
     @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
 class BusStopLayer extends Layer
@@ -101,10 +102,10 @@ class RentalsLayer extends Layer
     )
 
 # create layers - order of layers important because of SVG drawing
-distanceLayer = new DistanceLayer
-busRouteLayer = new BusRouteLayer
-busStopLayer = new BusStopLayer
-rentalLayer = new RentalsLayer
+distanceLayer = new DistanceLayer map
+busRouteLayer = new BusRouteLayer map
+busStopLayer = new BusStopLayer map
+rentalLayer = new RentalsLayer map
 
 # TODO decouple using events, e.g. from backbone --> route event, location, zoom on url
 setupDistanceSlider = () ->
