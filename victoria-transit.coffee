@@ -38,19 +38,19 @@ class DistanceLayer extends Layer
       @update()
       this
 
-  update: ->
-    @selector.selectAll("circle.reach").attr('r', @getReachableDistanceFromStop())
-
-  # Calculates pixel for 1km distance
-  # http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
-  getReachableDistanceFromStop: () ->
+  distanceInPixels: () ->
+    # Calculates pixel for 1km distance
+    # http://jan.ucc.nau.edu/~cvm/latlongdist.html with 0N 0W to 0N 0.008983W is 1km
     pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
     @distanceInMeters() / 1000 * pixelsPerKm
+
+  update: ->
+    @selector.selectAll("circle.reach").attr('r', @distanceInPixels())
 
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
-    marker.append("circle").attr("class", "reach").attr('r', @getReachableDistanceFromStop())
+    marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
 
 class BusRouteLayer extends Layer
   addRoutes: (routes, stops) ->
