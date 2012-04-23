@@ -20,10 +20,16 @@ reachableDistanceFromStop  = () ->
   pixelsPerKm = map.locationPoint({ lat: 0, lon: 0.008983 }).x - map.locationPoint({ lat: 0, lon: 0 }).x
   distanceInMeters / 1000 * pixelsPerKm
 
-  # Lat/Lng transform function
+# Lat/Lng transform function
 transform = (location) ->
   d = map.locationPoint(location)
   "translate(" + d.x + "," + d.y + ")"
+
+# create layers - order of layers important because of SVG drawing
+distanceLayer = d3.select("#map svg").insert("svg:g")
+busRouteLayer = d3.select("#map svg").insert("svg:g")
+busStopLayer = d3.select("#map svg").insert("svg:g")
+rentalLayer = d3.select("#map svg").insert("svg:g")
 
 createBusRouteLayer = (routes, stops) ->
   # TODO prevent overplotting by intelligently selecting route segments between stops
@@ -35,20 +41,18 @@ createBusRouteLayer = (routes, stops) ->
 
   svgLine = d3.svg.line().x((d) => d.x).y((d) => d.y).interpolate("linear")
   line = (route) => svgLine(route.stops.map((routeStop) => map.locationPoint(stopsById[routeStop.point_id])))
-  layer = d3.select("#map svg").insert("svg:g")
-  layer.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => line(d))
-  map.on("move", -> layer.selectAll("path").attr("d", (d) => line(d)))
+  busRouteLayer.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => line(d))
+  map.on("move", -> busRouteLayer.selectAll("path").attr("d", (d) => line(d)))
 
 createBusStopLayer = (stops) ->
   # TODO just have a single g element that is transformed
-  layer = d3.select("#map svg").insert("svg:g")
-  marker = layer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
+  marker = busStopLayer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle")
   .attr("class", "stop")
   .attr('r', 3.5)
   .attr("text", (stop) => stop.routes)
   map.on("move", ->
-    layer.selectAll("g").attr("transform", transform)
+    busStopLayer.selectAll("g").attr("transform", transform)
   )
 
   $(".stop").qtip(
@@ -56,14 +60,12 @@ createBusStopLayer = (stops) ->
       attr: 'text'
   )
 
-distanceLayer = false # set later
 updateDistance = () ->
   distanceLayer.selectAll("circle.reach").attr('r', reachableDistanceFromStop) if distanceLayer
 
 # separate layer so it can be drawn underneath the bus stop layer
 createBusStopReachLayer = (stops) ->
   # TODO just have a single g element that is transformed
-  distanceLayer = d3.select("#map svg").insert("svg:g")
   marker = distanceLayer.selectAll("g").data(stops).enter().append("g").attr("transform", transform)
   marker.append("circle").attr("class", "reach").attr('r', reachableDistanceFromStop)
   map.on("move", ->
@@ -91,8 +93,6 @@ setupDistanceSlider = () ->
   
 createRentalsLayer = (rentals) ->
   # TODO just have a single g element that is transformed
-  rentalLayer = d3.select("#map svg").insert("svg:g")
-  
   marker = rentalLayer.selectAll("g").data(rentals).enter().append("g").attr("transform", transform)
   marker.append("rect")
   .attr("class", "rental")
@@ -115,19 +115,19 @@ createRentalsLayer = (rentals) ->
       attr: 'text'
   )
 
-loadJson = () ->
+loadBusRoutes = () ->
   d3.json('data/uvic_transit.json', (json) ->
-    # order of layers important because of SVG drawing
     createBusStopReachLayer(json.stops)
     createBusRouteLayer(json.routes,json.stops)
     createBusStopLayer(json.stops)
-    
-    # We need to ensure that rentals are added last, so they aren't occuded by the previous layers. Terrible on my part.
-    d3.json('data/rentals.json', (json) ->
-      createRentalsLayer(json)
-    )
+  )
+
+loadRentals = () ->
+  d3.json('data/rentals.json', (json) ->
+    createRentalsLayer(json)
   )
 
 do ->
   setupDistanceSlider()
-  loadJson()
+  loadBusRoutes()
+  loadRentals()
