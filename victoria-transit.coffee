@@ -16,7 +16,6 @@ class Layer
   constructor: (@map) ->
     @selector = d3.select("#map svg").insert("svg:g")
     @map.on "move", => @update()
-    console.log @map
 
   # Lat/Lng transform function
   transform: (location) =>
@@ -79,21 +78,27 @@ class BusStopLayer extends Layer
     )
 
 class RentalsLayer extends Layer
+  viewedIndices: []
+  rentalClass: (rental, i) =>
+    if (@viewedIndices.indexOf(i) > -1) then "rental-viewed" else "rental"
+
   update: -> @selector.selectAll("g").attr("transform", @transform)
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
     marker.append("rect")
-    .attr("class", "rental")
+    .attr("class", @rentalClass)
     .attr("x", -8/2)
     .attr("y", -8/2)
     .attr('height', 8)
     .attr('width', 8)
-    .attr("text", (rentals) =>
-      (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rentals.availabilities
+    .attr("text", (rental) =>
+      (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rental.availabilities
     )
-    .on("click", (rentals) ->
-      window.open(rentals.url)
+    .on("click", (rental, i) =>
+      window.open(rental.url)
+      @viewedIndices.push(i)
+      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
     )
 
     $(".rental").qtip(
