@@ -92,8 +92,9 @@ class RentalsLayer extends Layer
     .attr("y", -8/2)
     .attr('height', 8)
     .attr('width', 8)
-    .attr("text", (rental) =>
-      (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rental.availabilities
+    .attr("text", (rental) => 
+      listings = (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rental.availabilities
+      rental.source + ", " + rental.type + " |" + listings
     )
     .on("click", (rental, i) =>
       window.open(rental.url)
