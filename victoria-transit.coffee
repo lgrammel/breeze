@@ -103,6 +103,7 @@ class RentalsLayer extends Layer
   updateVisibility: ->
     @selector.selectAll("rect").attr('visibility', (rentals) =>
       suites = (suite for suite in rentals.availabilities when suite && priceRange[0] <= suite.price <= priceRange[1] && roomsRange[0] <= suite.bedrooms <= roomsRange[1] )
+      
 
       if suites.length > 0
         'visible'
@@ -121,7 +122,7 @@ class RentalsLayer extends Layer
     .attr('height', 8)
     .attr('width', 8)
     .attr("text", (rental) => 
-      listings = (" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown") for suite in rental.availabilities
+      listings = " " + ((" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown" ) for suite in rental.availabilities)
       rental.source + ", " + rental.type + " |" + listings
     )
     .on("click", (rental, i) =>
