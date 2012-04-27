@@ -122,8 +122,8 @@ class RentalsLayer extends Layer
     .attr('height', 8)
     .attr('width', 8)
     .attr("text", (rental) => 
-      listings = " " + ((" " + suite.bedrooms + " bedroom: " + if suite.price > 0 then "$" + suite.price else "Unknown" ) for suite in rental.availabilities)
-      rental.source + ", " + rental.type + " |" + listings
+      listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
+      rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul>"
     )
     .on("click", (rental, i) =>
       window.open(rental.url)
