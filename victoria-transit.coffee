@@ -81,6 +81,34 @@ class RentalsLayer extends Layer
   viewedIndices: []
   rentalClass: (rental, i) =>
     if (@viewedIndices.indexOf(i) > -1) then "rental-viewed" else "rental"
+    
+  priceRange = [0,5000] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  priceRange: () ->
+    if arguments.length == 0
+      priceRange
+    else
+      priceRange = arguments[0]
+      @updateVisibility()
+      this  
+      
+  roomsRange = [0,5] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  roomsRange: () ->
+    if arguments.length == 0
+      roomsRange
+    else
+      roomsRange = arguments[0]
+      @updateVisibility()
+      this        
+      
+  updateVisibility: ->
+    @selector.selectAll("rect").attr('visibility', (rentals) =>
+      suites = (suite for suite in rentals.availabilities when suite && priceRange[0] <= suite.price <= priceRange[1] && roomsRange[0] <= suite.bedrooms <= roomsRange[1] )
+
+      if suites.length > 0
+        'visible'
+      else
+        'hidden'
+    )
 
   update: -> @selector.selectAll("g").attr("transform", @transform)
   addRentals: (rentals) ->
@@ -130,6 +158,40 @@ setupDistanceSlider = () ->
 
   sliderChanged($("#slider-distance-element").slider("value"))
   
+# TODO decouple using events, e.g. from backbone --> route event, location, zoom on url
+setupPriceSlider = () ->
+  # TODO support multiple event listers
+  sliderChanged = (values) ->
+    $( "#slider-price > .value" ).html( "$" + values[0] + " - " + values[1]  )
+    rentalLayer.priceRange(values)
+
+  $("#slider-price-element").slider(
+    range: true
+    values: rentalLayer.priceRange()
+    min: 0
+    max: 3000
+    slide: (event, ui) -> sliderChanged(ui.values)
+  )
+
+  sliderChanged($("#slider-price-element").slider("values"))
+  
+# TODO decouple using events, e.g. from backbone --> route event, location, zoom on url
+setupRoomsSlider = () ->
+  # TODO support multiple event listers
+  sliderChanged = (values) ->
+    $( "#slider-rooms > .value" ).html( values[0] + " - " + values[1] + " rooms"  )
+    rentalLayer.roomsRange(values)
+
+  $("#slider-rooms-element").slider(
+    range: true
+    values: rentalLayer.roomsRange()
+    min: 0
+    max: 5
+    slide: (event, ui) -> sliderChanged(ui.values)
+  )
+
+  sliderChanged($("#slider-rooms-element").slider("values"))
+  
 loadBusRoutes = () ->
   d3.json 'data/uvic_transit.json', (json) ->
     distanceLayer.addStops json.stops
@@ -142,5 +204,7 @@ loadRentals = () ->
 
 do ->
   setupDistanceSlider()
+  setupPriceSlider()
+  setupRoomsSlider()
   loadBusRoutes()
   loadRentals()
