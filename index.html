@@ -24,7 +24,8 @@
     <script type="text/coffeescript" src="victoria-transit.coffee"></script>
     <script type="text/javascript" src="lib/coffee-script.js"></script>
 
-<body>
+<script>function BlockMove(event) { event.preventDefault(); }</script>
+<body ontouchmove="BlockMove(event);">
   <div id="map"></div>
   <div class="header">
       <div class="title">Rentals for UVic Students</div>
