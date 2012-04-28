@@ -71,7 +71,10 @@ class BusStopLayer extends Layer
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-    marker.append("circle").attr("class", "stop").attr('r', 3.5).attr("text", (stop) -> stop.routes)
+    marker.append("circle")
+    .attr("class", "stop")
+    .attr('r', 3.5)
+    .attr("text", (stop) -> "<ul>" + (("<li>" + route + "</li>") for route in stop.routes).join("") + "</ul>")
 
     if (not Modernizr.touch)
       $(".stop").qtip(
