@@ -7,6 +7,13 @@ html, body, #map {
     padding: 0;
     position: absolute;
     overflow: hidden;
+    -webkit-text-size-adjust: none; /* Prevent font scaling in landscape on iPad*/
+}
+
+.qtip {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 12pt;
 }
 
 .header {

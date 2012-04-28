@@ -1,15 +1,16 @@
 # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
-po = org.polymaps
-map = po.map().container(d3.select("#map").append("svg:svg").node())
+polymaps = org.polymaps
+map = polymaps.map().container(d3.select("#map").append("svg:svg").node())
 .zoom(13)
 .center({lat: 48.455164, lon: -123.351059})# Victoria BC west of Cedar Hill Golf Course
-.add(po.drag())
-.add(po.wheel().smooth(false))
-.add(po.dblclick())
-.add(po.arrow())
+.add(polymaps.drag())
+.add(polymaps.wheel().smooth(false))
+.add(polymaps.dblclick())
+.add(polymaps.arrow())
+.add(polymaps.touch())
 
 # Stamen toner tiles http://maps.stamen.com
-map.add(po.image().url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
+map.add(polymaps.image().url(polymaps.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")))
 
 # Classes
 class Layer
@@ -70,12 +71,16 @@ class BusStopLayer extends Layer
   addStops: (stops) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-    marker.append("circle").attr("class", "stop").attr('r', 3.5).attr("text", (stop) -> stop.routes)
+    marker.append("circle")
+    .attr("class", "stop")
+    .attr('r', 3.5)
+    .attr("text", (stop) -> "<ul>" + (("<li>" + route + "</li>") for route in stop.routes).join("") + "</ul>")
 
-    $(".stop").qtip(
-      content:
-        attr: 'text'
-    )
+    if (not Modernizr.touch)
+      $(".stop").qtip(
+        content:
+          attr: 'text'
+      )
 
 class RentalsLayer extends Layer
   viewedIndices: []
@@ -103,7 +108,6 @@ class RentalsLayer extends Layer
   updateVisibility: ->
     @selector.selectAll("rect").attr('visibility', (rentals) =>
       suites = (suite for suite in rentals.availabilities when suite && priceRange[0] <= suite.price <= priceRange[1] && roomsRange[0] <= suite.bedrooms <= roomsRange[1] )
-      
 
       if suites.length > 0
         'visible'
@@ -125,16 +129,18 @@ class RentalsLayer extends Layer
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
       rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul>"
     )
-    .on("click", (rental, i) =>
+
+    marker.on("click", (rental, i) =>
       window.open(rental.url)
       @viewedIndices.push(i)
       @selector.selectAll("g").select("rect").attr("class", @rentalClass)
     )
 
-    $(".rental").qtip(
-      content:
-        attr: 'text'
-    )
+    if (not Modernizr.touch)
+      $(".rental").qtip(
+        content:
+          attr: 'text'
+      )
 
 # create layers - order of layers important because of SVG drawing
 distanceLayer = new DistanceLayer map
