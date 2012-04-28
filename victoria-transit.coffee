@@ -152,6 +152,7 @@ setupDistanceSlider = () ->
   $("#slider-distance-element").slider(
     range: "min"
     value: distanceLayer.distanceInMeters()
+    step: 10
     min: 0
     max: 2500
     slide: (event, ui) -> sliderChanged(ui.value)
