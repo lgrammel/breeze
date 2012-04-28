@@ -76,30 +76,30 @@ html, body, #map {
 
 .route {
     fill: none;
-    stroke: #660;
+    stroke: #3768;
     stroke-width: 2.5;
 }
 
 .stop {
-    fill : #990;
+    fill : #7aa6fe;
     stroke: black;
     stroke-width: 1;
 }
 
 .rental {
-    fill: #d00;
+    fill: #ff9c39;
 	stroke: black;
 	stroke-width: 1;
     cursor: pointer;
 }
 
 .rental-viewed {
-    fill: #800;
+    fill: #ffcb96;
     stroke: black;
     stroke-width: 1;
     cursor: pointer;
 }
 
 .reach {
-    fill: rgba(120,120,0,0.2);
+    fill: rgba(122,166,254,0.2);
 }
