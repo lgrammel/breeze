@@ -169,6 +169,7 @@ setupPriceSlider = () ->
   $("#slider-price-element").slider(
     range: true
     values: rentalLayer.priceRange()
+    step: 50
     min: 0
     max: 3000
     slide: (event, ui) -> sliderChanged(ui.values)
