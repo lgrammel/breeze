@@ -9,6 +9,6 @@ http://lgrammel.github.com/breeze/
 Credit to
 =========
 
- * Map tiles by [http://stamen.com|Stamen Design], under [http://creativecommons.org/licenses/by/3.0|CC BY 3.0]. Data by [http://openstreetmap.org|OpenStreetMap], under [http://creativecommons.org/licenses/by-sa/3.0|CC BY SA].
- * Map library [http://polymaps.org/|Polymaps] by [http://simplegeo.com/|SimpleGeo] and [http://stamen.com/|Stamen Design]
- * Visualization library [http://mbostock.github.com/d3/|d3] by Mike Bostock
+ * Map tiles by [Stamen Design](http://stamen.com), under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0). Data by [OpenStreetMap](http://openstreetmap.org), under [CC BY SA](http://creativecommons.org/licenses/by-sa/3.0).
+ * Map library [Polymaps](http://polymaps.org/) by [SimpleGeo](http://simplegeo.com/) and [Stamen Design](http://stamen.com/)
+ * Visualization library [d3.js](http://mbostock.github.com/d3/) by Mike Bostock
