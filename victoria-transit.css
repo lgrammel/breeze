@@ -10,6 +10,12 @@ html, body, #map {
     -webkit-text-size-adjust: none; /* Prevent font scaling in landscape on iPad*/
 }
 
+.qtip {
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 12pt;
+}
+
 .header {
     position: absolute;
     left: 0px;
