@@ -130,12 +130,13 @@ class RentalsLayer extends Layer
       rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul>"
     )
 
+    marker.on("click", (rental, i) =>
+      window.open(rental.url)
+      @viewedIndices.push(i)
+      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+    )
+
     if (not Modernizr.touch)
-      marker.on("click", (rental, i) =>
-        window.open(rental.url)
-        @viewedIndices.push(i)
-        @selector.selectAll("g").select("rect").attr("class", @rentalClass)
-      )
       $(".rental").qtip(
         content:
           attr: 'text'
