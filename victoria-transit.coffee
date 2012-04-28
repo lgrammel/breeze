@@ -73,10 +73,11 @@ class BusStopLayer extends Layer
     marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
     marker.append("circle").attr("class", "stop").attr('r', 3.5).attr("text", (stop) -> stop.routes)
 
-    $(".stop").qtip(
-      content:
-        attr: 'text'
-    )
+    if (not Modernizr.touch)
+      $(".stop").qtip(
+        content:
+          attr: 'text'
+      )
 
 class RentalsLayer extends Layer
   viewedIndices: []
@@ -104,7 +105,6 @@ class RentalsLayer extends Layer
   updateVisibility: ->
     @selector.selectAll("rect").attr('visibility', (rentals) =>
       suites = (suite for suite in rentals.availabilities when suite && priceRange[0] <= suite.price <= priceRange[1] && roomsRange[0] <= suite.bedrooms <= roomsRange[1] )
-      
 
       if suites.length > 0
         'visible'
@@ -126,16 +126,17 @@ class RentalsLayer extends Layer
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
       rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul>"
     )
-    .on("click", (rental, i) =>
-      window.open(rental.url)
-      @viewedIndices.push(i)
-      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
-    )
 
-    $(".rental").qtip(
-      content:
-        attr: 'text'
-    )
+    if (not Modernizr.touch)
+      marker.on("click", (rental, i) =>
+        window.open(rental.url)
+        @viewedIndices.push(i)
+        @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+      )
+      $(".rental").qtip(
+        content:
+          attr: 'text'
+      )
 
 # create layers - order of layers important because of SVG drawing
 distanceLayer = new DistanceLayer map
