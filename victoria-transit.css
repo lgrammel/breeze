@@ -23,6 +23,21 @@ html, body, #map {
     font-family: Arial, sans-serif;
 }
 
+.slider {
+    margin-top: 12px;
+    margin-left: 8px;
+    margin-right: 10px;
+}
+
+.slider-element {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.label {
+    margin-right: 8px;
+}
+
 .title {
     font-size: 20px;
     font-weight: bold;
