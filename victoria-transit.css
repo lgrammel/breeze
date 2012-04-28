@@ -76,7 +76,7 @@ html, body, #map {
 
 .route {
     fill: none;
-    stroke: #3768;
+    stroke: #3768cd;
     stroke-width: 2.5;
 }
 
@@ -94,7 +94,7 @@ html, body, #map {
 }
 
 .rental-viewed {
-    fill: #ffcb96;
+    fill: #935f2b;
     stroke: black;
     stroke-width: 1;
     cursor: pointer;
