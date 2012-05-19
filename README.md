@@ -3,7 +3,7 @@ Rentals for UVic Students Visualization
 
 Shows apartments and rooms for rent in Victoria, BC, together with bus routes to UVic.
 
-http://uvicrent.herokuapp.com/
+http://victoria.rentalmap.co/
 
 
 Credit to
