@@ -144,7 +144,7 @@ class RentalsLayer extends Layer
         title:
           text: 'Rental Details'
           button: true  
-      show: 'mousedown'
+      show: 'mousedown' 
       hide: false
       position:
         my: 'bottom center'
