@@ -133,10 +133,10 @@ class RentalsLayer extends Layer
       rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\">View Original Listing</a>"
     )
     
-    marker.on("click", (rental, i) =>
-      @viewedIndices.push(i)
-      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
-    )
+#    marker.on("click", (rental, i) =>
+#      @viewedIndices.push(i)
+#      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+#    )
 
     $(".rental").qtip(
       content:
