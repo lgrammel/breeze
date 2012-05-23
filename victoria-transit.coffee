@@ -132,6 +132,11 @@ class RentalsLayer extends Layer
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
       rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\">View Original Listing</a>"
     )
+    
+    marker.on("click", (rental, i) =>
+      @viewedIndices.push(i)
+      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+    )
 
     $(".rental").qtip(
       content:
