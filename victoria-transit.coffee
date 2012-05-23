@@ -115,7 +115,10 @@ class RentalsLayer extends Layer
         'hidden'
     )
 
-  update: -> @selector.selectAll("g").attr("transform", @transform)
+  update: -> 
+    @selector.selectAll("g").attr("transform", @transform)
+    $(".rental").qtip('reposition')
+    
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
@@ -127,20 +130,22 @@ class RentalsLayer extends Layer
     .attr('width', 8)
     .attr("text", (rental) => 
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
-      rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul>"
+      rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\">View Original Listing</a>"
     )
 
-    marker.on("click", (rental, i) =>
-      window.open(rental.url)
-      @viewedIndices.push(i)
-      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+    $(".rental").qtip(
+      content:
+        attr: 'text'
+        title:
+          text: 'Rental Details'
+          button: true  
+      show: 'mousedown'
+      hide: false
+      position:
+        my: 'bottom center'
+        at: 'top center'
+      style: 'ui-tooltip-tipped'
     )
-
-    if (not Modernizr.touch)
-      $(".rental").qtip(
-        content:
-          attr: 'text'
-      )
 
 # create layers - order of layers important because of SVG drawing
 distanceLayer = new DistanceLayer map
