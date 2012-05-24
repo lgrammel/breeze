@@ -1,6 +1,8 @@
 # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
+
 polymaps = org.polymaps
-map = polymaps.map().container(d3.select("#map").append("svg:svg").node())
+
+map = polymaps.map().container(d3.select("#map").append("svg:svg").attr("width", "100%").attr("height", "100%").node())
 .zoom(13)
 .center({lat: 48.455164, lon: -123.351059})# Victoria BC west of Cedar Hill Golf Course
 .add(polymaps.drag())
