@@ -130,7 +130,7 @@ class RentalsLayer extends Layer
     .attr('width', 8)
     .attr("text", (rental) => 
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
-      rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\">View Original Listing</a>"
+      (if rental.image_url then "<a href=\"" + rental.url + "\" target=\"_blank\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" else "") + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\">View Original Listing</a>" 
     )
     
 #    marker.on("click", (rental, i) =>
