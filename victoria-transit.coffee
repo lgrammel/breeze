@@ -82,6 +82,8 @@ class BusStopLayer extends Layer
       $(".stop").qtip(
         content:
           attr: 'text'
+        show: 'mouseover'
+        hide: 'mouseout'
       )
 
 class RentalsLayer extends Layer
