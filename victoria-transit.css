@@ -100,6 +100,13 @@ html, body, #map {
     cursor: pointer;
 }
 
+.rental-img {
+	max-height: 100px;
+	max-width: 100px;
+	float: right;
+	margin: 0 0 0 10px;
+}
+
 .rental-viewed {
     fill: #935f2b;
     stroke: black;
