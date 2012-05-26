@@ -30,12 +30,13 @@ class DistanceLayer extends Layer
     @selector.selectAll("g").attr("transform", @transform)
     @updateCircleRadius()
 
-  distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  distanceInMeters = (if $.cookie("distance") then $.cookie("distance") else 500) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   distanceInMeters: () ->
     if arguments.length == 0
       distanceInMeters
     else
       distanceInMeters = arguments[0]
+      $.cookie("distance",distanceInMeters, { expires: 30 })
       @updateCircleRadius()
       this
 
@@ -91,21 +92,25 @@ class RentalsLayer extends Layer
   rentalClass: (rental, i) =>
     if (@viewedIndices.indexOf(i) > -1) then "rental-viewed" else "rental"
     
-  priceRange = [0,5000] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  priceRange = (if $.cookie("priceLow") and $.cookie("priceHigh") then [$.cookie("priceLow"),$.cookie("priceHigh")] else [0,3000]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   priceRange: () ->
     if arguments.length == 0
       priceRange
     else
       priceRange = arguments[0]
+      $.cookie("priceLow",priceRange[0], { expires: 30 })
+      $.cookie("priceHigh",priceRange[1], { expires: 30 })
       @updateVisibility()
       this  
       
-  roomsRange = [0,5] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  roomsRange = (if $.cookie("roomsLow") and $.cookie("roomsHigh") then [$.cookie("roomsLow"),$.cookie("roomsHigh")] else [0,5]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   roomsRange: () ->
     if arguments.length == 0
       roomsRange
     else
       roomsRange = arguments[0]
+      $.cookie("roomsLow",roomsRange[0], { expires: 30 })
+      $.cookie("roomsHigh",roomsRange[1], { expires: 30 })
       @updateVisibility()
       this        
       
@@ -136,6 +141,7 @@ class RentalsLayer extends Layer
       listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
       (if rental.image_url then "<a href=\"" + rental.url + "\" target=\"_blank\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" else "") + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\">View Original Listing</a>" 
     )
+    @updateVisibility()
     
 #    marker.on("click", (rental, i) =>
 #      @viewedIndices.push(i)
