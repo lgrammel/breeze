@@ -90,7 +90,7 @@ class BusStopLayer extends Layer
 class RentalsLayer extends Layer
   viewedIndices: []
   rentalClass: (rental, i) =>
-    if (@viewedIndices.indexOf(i) > -1) then "rental-viewed" else "rental"
+    if (@viewedIndices.indexOf(i) > -1) then "rental rental-viewed" else "rental"
     
   priceRange = (if $.cookie("priceLow") and $.cookie("priceHigh") then [$.cookie("priceLow"),$.cookie("priceHigh")] else [0,3000]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   priceRange: () ->
@@ -143,10 +143,10 @@ class RentalsLayer extends Layer
     )
     @updateVisibility()
     
-#    marker.on("click", (rental, i) =>
-#      @viewedIndices.push(i)
-#      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
-#    )
+    marker.on("click", (rental, i) =>
+      @viewedIndices.push(i)
+      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+    )
 
     $(".rental").qtip(
       content:
