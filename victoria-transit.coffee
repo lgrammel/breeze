@@ -164,8 +164,7 @@ class RentalsLayer extends Layer
     
     marker.on("click", (rental, i) =>
       @viewedIndices[rental.id] = new Date()*1
-      console.log(@viewedIndices)
-      $.cookie("viewed-listings", JSON.stringify(@viewedIndices))
+      $.cookie("viewed-listings", JSON.stringify(@viewedIndices), { expires: 30 })
       @selector.selectAll("g").select("rect").attr("class", @rentalClass)
     )
 
