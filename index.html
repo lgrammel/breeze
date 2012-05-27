@@ -41,6 +41,12 @@
   })();
 
 </script>
+<script type="text/javascript">
+  function recordOutboundLink(link, category, action) {
+    _gat._getTrackerByName()._trackEvent(category, action);
+    setTimeout('document.location = "' + link.href + '"', 100);
+  }
+</script>
 
 <script>function BlockMove(event) { event.preventDefault(); }</script>
 <body ontouchmove="BlockMove(event);">

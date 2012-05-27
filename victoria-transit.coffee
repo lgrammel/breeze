@@ -139,6 +139,15 @@ class RentalsLayer extends Layer
   convertDateToUTC: (date) ->
     return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds())
     
+  setListingDisplay: (rental) ->
+    listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
+    
+    output = ""
+    if rental.image_url
+      output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "');return false;\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" 
+    output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "');return false;\">View Original Listing</a>" 
+    output
+    
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
@@ -149,8 +158,7 @@ class RentalsLayer extends Layer
     .attr('height', 8)
     .attr('width', 8)
     .attr("text", (rental) => 
-      listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
-      (if rental.image_url then "<a href=\"" + rental.url + "\" target=\"_blank\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" else "") + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\">View Original Listing</a>" 
+      @setListingDisplay(rental) 
     )
     @updateVisibility()
     
