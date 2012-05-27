@@ -143,8 +143,8 @@ class RentalsLayer extends Layer
     
     output = ""
     if rental.image_url
-      output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "');return false;\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" 
-    output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "');return false;\">View Original Listing</a>" 
+      output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" 
+    output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\">View Original Listing</a>" 
     output
     
   addRentals: (rentals) ->
