@@ -92,7 +92,6 @@ class BusStopLayer extends Layer
 class RentalsLayer extends Layer
   viewedIndices: (if $.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")) else new Object())
   rentalClass: (rental, i) =>
-    console.log(@viewedIndices)
     if (@viewedIndices.hasOwnProperty(rental.id)) 
       if (rental.updated_at > @viewedIndices[rental.id]) 
         delete @viewedIndices[rental.id]
