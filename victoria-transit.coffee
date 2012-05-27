@@ -87,10 +87,18 @@ class BusStopLayer extends Layer
         hide: 'mouseout'
       )
 
+#$.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")
+
 class RentalsLayer extends Layer
-  viewedIndices: []
+  viewedIndices: (if $.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")) else new Object())
   rentalClass: (rental, i) =>
-    if (@viewedIndices.indexOf(i) > -1) then "rental rental-viewed" else "rental"
+    console.log(@viewedIndices)
+    if (@viewedIndices.hasOwnProperty(rental.id)) 
+      if (rental.updated_at > @viewedIndices[rental.id]) 
+        delete @viewedIndices[rental.id]
+        "rental" 
+      else "rental rental-viewed"
+    else "rental"
     
   priceRange = (if $.cookie("priceLow") and $.cookie("priceHigh") then [$.cookie("priceLow"),$.cookie("priceHigh")] else [0,3000]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   priceRange: () ->
@@ -128,6 +136,9 @@ class RentalsLayer extends Layer
     @selector.selectAll("g").attr("transform", @transform)
     $(".rental").qtip('reposition')
     
+  convertDateToUTC: (date) ->
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds())
+    
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
@@ -144,7 +155,9 @@ class RentalsLayer extends Layer
     @updateVisibility()
     
     marker.on("click", (rental, i) =>
-      @viewedIndices.push(i)
+      @viewedIndices[rental.id] = new Date()*1
+      console.log(@viewedIndices)
+      $.cookie("viewed-listings", JSON.stringify(@viewedIndices))
       @selector.selectAll("g").select("rect").attr("class", @rentalClass)
     )
 
