@@ -43,8 +43,19 @@
 </script>
 <script type="text/javascript">
   function recordOutboundLink(link, category, action, label) {
-    _gat._getTrackerByName()._trackEvent(category, action, label);
+    recordEvent(category,action,label);
     setTimeout('window.open("' + link.href + '","_blank")', 100);
+  }
+  function recordEvent(category, action, label) {
+    _gat._getTrackerByName()._trackEvent(category, action, label);
+  }
+  function setVariable(index,name,value) {
+  	_gaq.push(['_setCustomVar',
+      index,               // This custom var is set to slot #1.  Required parameter.
+      name,                // The name acts as a kind of category for the user activity.  Required parameter.
+      value,               // This value of the custom variable.  Required parameter.
+      2                    // Sets the scope to session-level.  Optional parameter.
+   ]);
   }
 </script>
 
