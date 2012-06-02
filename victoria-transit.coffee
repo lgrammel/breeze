@@ -1,6 +1,8 @@
 # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
+
 polymaps = org.polymaps
-map = polymaps.map().container(d3.select("#map").append("svg:svg").node())
+
+map = polymaps.map().container(d3.select("#map").append("svg:svg").attr("width", "100%").attr("height", "100%").node())
 .zoom(13)
 .center({lat: 48.455164, lon: -123.351059})# Victoria BC west of Cedar Hill Golf Course
 .add(polymaps.drag())
@@ -28,12 +30,14 @@ class DistanceLayer extends Layer
     @selector.selectAll("g").attr("transform", @transform)
     @updateCircleRadius()
 
-  distanceInMeters = 500 # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  distanceInMeters = (if $.cookie("distance") then $.cookie("distance") else 500) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   distanceInMeters: () ->
     if arguments.length == 0
       distanceInMeters
     else
       distanceInMeters = arguments[0]
+      $.cookie("distance",distanceInMeters, { expires: 30 })
+      setVariable(1,"Distance",distanceInMeters)
       @updateCircleRadius()
       this
 
@@ -80,28 +84,45 @@ class BusStopLayer extends Layer
       $(".stop").qtip(
         content:
           attr: 'text'
+        show: 'mouseover'
+        hide: 'mouseout'
       )
 
+#$.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")
+
 class RentalsLayer extends Layer
-  viewedIndices: []
+  viewedIndices: (if $.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")) else new Object())
   rentalClass: (rental, i) =>
-    if (@viewedIndices.indexOf(i) > -1) then "rental-viewed" else "rental"
+    if (@viewedIndices.hasOwnProperty(rental.id)) 
+      if (rental.updated_at > @viewedIndices[rental.id]) 
+        delete @viewedIndices[rental.id]
+        "rental" 
+      else "rental rental-viewed"
+    else "rental"
     
-  priceRange = [0,5000] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  priceRange = (if $.cookie("priceLow") and $.cookie("priceHigh") then [$.cookie("priceLow"),$.cookie("priceHigh")] else [0,3000]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   priceRange: () ->
     if arguments.length == 0
       priceRange
     else
       priceRange = arguments[0]
+      $.cookie("priceLow",priceRange[0], { expires: 30 })
+      $.cookie("priceHigh",priceRange[1], { expires: 30 })
+      setVariable(2,"Price Low",priceRange[0])
+      setVariable(3,"Price High",priceRange[1])
       @updateVisibility()
       this  
       
-  roomsRange = [0,5] # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  roomsRange = (if $.cookie("roomsLow") and $.cookie("roomsHigh") then [$.cookie("roomsLow"),$.cookie("roomsHigh")] else [0,5]) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   roomsRange: () ->
     if arguments.length == 0
       roomsRange
     else
       roomsRange = arguments[0]
+      $.cookie("roomsLow",roomsRange[0], { expires: 30 })
+      $.cookie("roomsHigh",roomsRange[1], { expires: 30 })
+      setVariable(4,"Min Rooms", roomsRange[0])
+      setVariable(5,"Max Rooms", roomsRange[1])
       @updateVisibility()
       this        
       
@@ -115,7 +136,22 @@ class RentalsLayer extends Layer
         'hidden'
     )
 
-  update: -> @selector.selectAll("g").attr("transform", @transform)
+  update: -> 
+    @selector.selectAll("g").attr("transform", @transform)
+    $(".rental").qtip('reposition')
+    
+  convertDateToUTC: (date) ->
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds())
+    
+  setListingDisplay: (rental) ->
+    listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
+    
+    output = ""
+    if rental.image_url
+      output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>" 
+    output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\">View Original Listing</a>" 
+    output
+    
   addRentals: (rentals) ->
     # TODO just have a single g element that is transformed
     marker = @selector.selectAll("g").data(rentals).enter().append("g").attr("transform", @transform)
@@ -126,30 +162,30 @@ class RentalsLayer extends Layer
     .attr('height', 8)
     .attr('width', 8)
     .attr("text", (rental) => 
-      listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
-      rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\">View Original Listing</a>"
+      @setListingDisplay(rental) 
+    )
+    @updateVisibility()
+    
+    marker.on("click", (rental, i) =>
+      @viewedIndices[rental.id] = new Date()*1
+      $.cookie("viewed-listings", JSON.stringify(@viewedIndices), { expires: 30 })
+      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
+      recordEvent('Rental View',rental.url,rental.source)
     )
 
-#    marker.on("click", (rental, i) =>
-#      window.open(rental.url)
-#      @viewedIndices.push(i)
-#      @selector.selectAll("g").select("rect").attr("class", @rentalClass)
-#    )
-
-    if (not Modernizr.touch)
-      $(".rental").qtip(
-        content:
-          attr: 'text'
-          title:
-            text: 'Rental Details'
-            button: true  
-        show: 'mousedown'
-        hide: false
-        position:
-          my: 'bottom center'
-          at: 'top center'
-        style: 'ui-tooltip-tipped'
-      )
+    $(".rental").qtip(
+      content:
+        attr: 'text'
+        title:
+          text: 'Rental Details'
+          button: true  
+      show: 'mousedown' 
+      hide: false
+      position:
+        my: 'bottom center'
+        at: 'top center'
+      style: 'ui-tooltip-tipped'
+    )
 
 # create layers - order of layers important because of SVG drawing
 distanceLayer = new DistanceLayer map
