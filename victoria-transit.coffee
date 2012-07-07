@@ -275,7 +275,7 @@ loadBusRoutes = () ->
     busStopLayer.addStops json.stops
 
 loadRentals = () ->
-  d3.json 'data/uvicoffcampus.json', (json) ->
+  d3.json 'data/rentals.json', (json) ->
     rentalLayer.addRentals json
 
 do ->
