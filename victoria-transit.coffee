@@ -126,7 +126,7 @@ class RentalsLayer extends Layer
       @updateVisibility()
       this        
   
-  allowShared = (if $.cookie("showShared") then $.cookie("showShared") else false) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  allowShared = (if $.cookie("showShared") then $.cookie("showShared") == "true" else false) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
   allowShared: () ->
     if arguments.length == 0
       allowShared
@@ -264,7 +264,7 @@ setupRoomsSlider = () ->
   sliderChanged($("#slider-rooms-element").slider("values"))
 
 setupSharedCheckbox = () ->
-  $("#show-shared").attr 'checked', -> rentalLayer.allowShared
+  $("#show-shared").attr 'checked', rentalLayer.allowShared()
   $("#show-shared").click ->
     rentalLayer.allowShared(this.checked)
   
