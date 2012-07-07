@@ -81,6 +81,13 @@ html, body, #map {
     font-weight: bold;
 }
 
+.shared {
+    margin-top: 12px;
+    margin-left: 8px;
+    margin-right: 10px;
+}
+
+
 .route {
     fill: none;
     stroke: #3768cd;
