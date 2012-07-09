@@ -37,7 +37,7 @@ class DistanceLayer extends Layer
     else
       distanceInMeters = arguments[0]
       $.cookie("distance",distanceInMeters, { expires: 30 })
-      setVariable(1,"Distance",distanceInMeters)
+      setVariable(1,"Distance",distanceInMeters.toString())
       @updateCircleRadius()
       this
 
@@ -108,8 +108,8 @@ class RentalsLayer extends Layer
       priceRange = arguments[0]
       $.cookie("priceLow",priceRange[0], { expires: 30 })
       $.cookie("priceHigh",priceRange[1], { expires: 30 })
-      setVariable(2,"Price Low",priceRange[0])
-      setVariable(3,"Price High",priceRange[1])
+      setVariable(2,"Price Low",priceRange[0].toString())
+      setVariable(3,"Price High",priceRange[1].toString())
       @updateVisibility()
       this  
       
@@ -121,8 +121,8 @@ class RentalsLayer extends Layer
       roomsRange = arguments[0]
       $.cookie("roomsLow",roomsRange[0], { expires: 30 })
       $.cookie("roomsHigh",roomsRange[1], { expires: 30 })
-      setVariable(4,"Min Rooms", roomsRange[0])
-      setVariable(5,"Max Rooms", roomsRange[1])
+      setVariable(4,"Min Rooms", roomsRange[0].toString())
+      setVariable(5,"Max Rooms", roomsRange[1].toString())
       @updateVisibility()
       this        
   
