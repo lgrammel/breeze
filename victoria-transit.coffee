@@ -19,6 +19,7 @@ class Layer
   constructor: (@map) ->
     @selector = d3.select("#map svg").insert("svg:g")
     @map.on "move", => @update()
+    @map.on "resize", => @update()
 
   # Lat/Lng transform function
   transform: (location) =>
