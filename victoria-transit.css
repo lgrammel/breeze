@@ -124,3 +124,7 @@ html, body, #map {
 .reach {
     fill: rgba(122,166,254,0.2);
 }
+
+#unsupportedBrowser {
+    margin: 20px;
+}
