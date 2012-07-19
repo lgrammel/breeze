@@ -19,6 +19,7 @@ class Layer
   constructor: (@map) ->
     @selector = d3.select("#map svg").insert("svg:g")
     @map.on "move", => @update()
+    @map.on "resize", => @update()
 
   # Lat/Lng transform function
   transform: (location) =>
@@ -37,7 +38,7 @@ class DistanceLayer extends Layer
     else
       distanceInMeters = arguments[0]
       $.cookie("distance",distanceInMeters, { expires: 30 })
-      setVariable(1,"Distance",distanceInMeters)
+      setVariable(1,"Distance",distanceInMeters.toString())
       @updateCircleRadius()
       this
 
@@ -108,8 +109,8 @@ class RentalsLayer extends Layer
       priceRange = arguments[0]
       $.cookie("priceLow",priceRange[0], { expires: 30 })
       $.cookie("priceHigh",priceRange[1], { expires: 30 })
-      setVariable(2,"Price Low",priceRange[0])
-      setVariable(3,"Price High",priceRange[1])
+      setVariable(2,"Price Low",priceRange[0].toString())
+      setVariable(3,"Price High",priceRange[1].toString())
       @updateVisibility()
       this  
       
@@ -121,17 +122,34 @@ class RentalsLayer extends Layer
       roomsRange = arguments[0]
       $.cookie("roomsLow",roomsRange[0], { expires: 30 })
       $.cookie("roomsHigh",roomsRange[1], { expires: 30 })
-      setVariable(4,"Min Rooms", roomsRange[0])
-      setVariable(5,"Max Rooms", roomsRange[1])
+      setVariable(4,"Min Rooms", roomsRange[0].toString())
+      setVariable(5,"Max Rooms", roomsRange[1].toString())
       @updateVisibility()
       this        
+  
+  allowShared = (if $.cookie("showShared") then $.cookie("showShared") == "true" else false) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
+  allowShared: () ->
+    if arguments.length == 0
+      allowShared
+    else
+      allowShared = arguments[0]
+      $.cookie("showShared",allowShared, { expires: 30 })
+      @updateVisibility()
+      this  
+  
+  isNotSharedOrAllowed: (rental) ->
+    match = /shared|room/i.test(rental.type)
+    if match
+      allowShared
+    else
+      true
       
   updateVisibility: ->
     @selector.selectAll("rect").attr('visibility', (rentals) =>
       suites = (suite for suite in rentals.availabilities when suite && priceRange[0] <= suite.price <= priceRange[1] && roomsRange[0] <= suite.bedrooms <= roomsRange[1] )
 
       if suites.length > 0
-        'visible'
+        if @isNotSharedOrAllowed(rentals) then 'visible' else 'hidden'
       else
         'hidden'
     )
@@ -245,6 +263,11 @@ setupRoomsSlider = () ->
   )
 
   sliderChanged($("#slider-rooms-element").slider("values"))
+
+setupSharedCheckbox = () ->
+  $("#show-shared").attr 'checked', rentalLayer.allowShared()
+  $("#show-shared").click ->
+    rentalLayer.allowShared(this.checked)
   
 loadBusRoutes = () ->
   d3.json 'data/uvic_transit.json', (json) ->
@@ -260,5 +283,7 @@ do ->
   setupDistanceSlider()
   setupPriceSlider()
   setupRoomsSlider()
+  setupSharedCheckbox()
+  
   loadBusRoutes()
   loadRentals()
