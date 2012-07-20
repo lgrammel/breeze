@@ -128,3 +128,9 @@ html, body, #map {
 #unsupportedBrowser {
     margin: 20px;
 }
+
+.header-expand {
+	margin-top: 10px;
+	width: 100%;
+}
+

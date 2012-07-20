@@ -70,22 +70,53 @@
 <body ontouchmove="BlockMove(event);">
   <div id="map" class="regular"></div>
   <div class="header regular">
-      <div class="title">Rentals in Victoria BC</div>
-      <!-- TODO fix CSS for slider -->
-      <div class="slider" id="slider-distance">
-          <span class="label">Distance from bus stop:</span><span class="value"></span>
-          <div class="slider-element" id="slider-distance-element"></div>
+  	<div class="title">Rentals in Victoria BC</div>
+      <div id="standard-options">
+	      <!-- TODO fix CSS for slider -->
+	      <div class="slider" id="slider-distance">
+	          <span class="label">Distance from bus stop:</span><span class="value"></span>
+	          <div class="slider-element" id="slider-distance-element"></div>
+	      </div>
+	      <div class="slider" id="slider-price">
+	          <span class="value"></span>
+	          <div class="slider-element" id="slider-price-element"></div>
+	      </div>
+	      <div class="slider" id="slider-rooms">
+	          <span class="value"></span>
+	          <div class="slider-element" id="slider-rooms-element"></div>
+	      </div>
+	      <div class="shared">Shared/Roommate: <input type="checkbox" id="show-shared"/></div>
       </div>
-      <div class="slider" id="slider-price">
-          <span class="value"></span>
-          <div class="slider-element" id="slider-price-element"></div>
-      </div>
-      <div class="slider" id="slider-rooms">
-          <span class="value"></span>
-          <div class="slider-element" id="slider-rooms-element"></div>
-      </div>
-      <div class="shared">Shared/Roommate: <input type="checkbox" id="show-shared"/></div>
+      <div class="header-expand"></div>
   </div>
+  
+ 
+  <script>
+  	 function toggleClick (element) {
+     	if ($("#standard-options").is(":visible"))
+     	{
+			$("#standard-options").hide("slow")
+     		$(element).button("option", "icons", {primary: "ui-icon-triangle-1-s"})
+     	}
+        else
+        {
+        	$("#standard-options").show("slow")
+        	$(element).button("option", "icons", {primary: "ui-icon-triangle-1-n"})
+        }
+     }
+  
+  	$(function() {
+		$( ".header-expand" ).button({
+            icons: {
+                primary: "ui-icon ui-icon-triangle-1-n"
+            },
+            text: false
+        }).click(function () {
+     		toggleClick(this)
+     	});
+     });
+
+  </script>
   
   <div id="unsupportedBrowser" class="alert alert-block alert-error" style="display:none;">
     <h4 class="alert-heading">Unsupported Browser</h4>
@@ -98,7 +129,7 @@
         <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a>, or
         <a href="http://www.apple.com/safari/">Safari</a>.</p>
   </div>
-  <a class="regular" href="http://github.com/lgrammel/breeze" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/4c7dc970b89fd04b81c8e221ba88ff99a06c6b61/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67" alt="Fork me on GitHub"></a>
-  <div class="regular" id="copyright">&copy; 2012 <a href="http://larsgrammel.de">Lars Grammel</a> & <a href="http://www.jamiestarke.com/">Jamie Starke</a>, under  <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>. Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.</div>
+  <a class="github regular desktop" href="http://github.com/lgrammel/breeze" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/4c7dc970b89fd04b81c8e221ba88ff99a06c6b61/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f77686974655f6666666666662e706e67" alt="Fork me on GitHub"></a>
+  <div class="regular desktop" id="copyright">&copy; 2012 <a href="http://larsgrammel.de">Lars Grammel</a> & <a href="http://www.jamiestarke.com/">Jamie Starke</a>, under  <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>. Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.</div>
 </body>
 </html>

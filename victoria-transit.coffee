@@ -1,4 +1,9 @@
 if Modernizr.svg and Modernizr.inlinesvg
+  if $(window).height() < 500 or $(window).width() < 500
+    $(".desktop").hide()
+  if Modernizr.touch
+    $(".github").hide()
+    
   # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
   polymaps = org.polymaps
 
