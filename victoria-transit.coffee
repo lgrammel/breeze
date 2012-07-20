@@ -291,4 +291,4 @@ if Modernizr.svg and Modernizr.inlinesvg
 else
   $('#unsupportedBrowser').show();
   $('.regular').hide();
-  recordEvent('Unsupported Browser',null,null)
+  recordEvent('Unsupported Browser',"","")
