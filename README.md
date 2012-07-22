@@ -1,10 +1,21 @@
-Rentals for UVic Students Visualization
-=======================================
+Breeze
+======
+*by [Lars Grammel](https://twitter.com/lgrammel) and [Jamie Starke](https://twitter.com/jamiestarke).*
+
+A web frontend for showing rentals and transit routes on a map.
+
+Documentation
+-------------
+
+[JSON](https://github.com/lgrammel/breeze/wiki/JSON)
+
+
+Frontend for Rentals for UVic Students Visualization
+----------------------------------------------------
 
 Shows apartments and rooms for rent in Victoria, BC, together with bus routes to UVic.
 
 http://victoria.rentalmap.co/
-
 
 Credit to
 ---------
