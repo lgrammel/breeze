@@ -21,6 +21,19 @@ if Modernizr.svg and Modernizr.inlinesvg
 
   # Classes
   class Layer
+    @zoom = 0
+    zoomChanged: ->
+      if @zoom != @map.zoom()
+        @zoom = @map.zoom()
+        
+    @distance = 0
+    pixelDistance: ->
+      if @zoomChanged
+        p0 = @map.pointLocation({x: 0, y: 0})
+        p1 = @map.pointLocation({x: 1, y: 1})
+        @distance = Math.max(Math.abs(p0.lat - p1.lat),Math.abs(p0.lon - p1.lon))
+      @distance      
+    
     constructor: (@map) ->
       @selector = d3.select("#map svg").insert("svg:g")
       @map.on "move", => @update()
@@ -30,6 +43,26 @@ if Modernizr.svg and Modernizr.inlinesvg
     transform: (location) =>
       d = @map.locationPoint(location)
       "translate(" + d.x + "," + d.y + ")"
+      
+    cluster: (stops, distance) ->
+      currentStops = stops.slice(0)
+      
+      clustered = []
+      while currentStops.length > 0
+        stop = currentStops.shift()
+        
+        cluster = []
+        cluster.push stop
+        
+        i = 0
+        while i < currentStops.length
+          if Math.abs(currentStops[i].lat - stop.lat) < distance and Math.abs(currentStops[i].lon - stop.lon) < distance
+            aStop = currentStops.splice i,1
+            cluster.push aStop[0]
+            i--
+          i++
+        clustered.push cluster  
+      clustered   
 
   class DistanceLayer extends Layer
     update: ->
@@ -62,6 +95,7 @@ if Modernizr.svg and Modernizr.inlinesvg
       marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
 
   class BusRouteLayer extends Layer
+
     svgLine = d3.svg.line().x((d) -> d.x).y((d) -> d.y).interpolate("linear")
 
     update: () -> @selector.selectAll("path").attr("d", (d) => @line(d))
@@ -77,23 +111,38 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
   class BusStopLayer extends Layer
-    update: -> @selector.selectAll("g").attr("transform", @transform)
-    addStops: (stops) ->
+    stops = []
+    clusters = []   
+    
+    update: ->
+      if @zoomChanged()
+        @clusters = @cluster(@stops,@pixelDistance() * 7)
+
+        marker = @selector.selectAll("g").data(@clusters)
+        marker.enter().append("g")
+        .append("circle")
+        .attr("class", "stop")
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", (cluster) -> "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
+        marker.exit().remove()
+        
+        if (not Modernizr.touch)
+          $(".stop").qtip(
+            content:
+              attr: 'text'
+            show: 'mouseover'
+            hide: 'mouseout'
+          )
+      
       # TODO just have a single g element that is transformed
-      marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-      marker.append("circle")
-      .attr("class", "stop")
-      .attr('r', 3.5)
-      .attr("text", (stop) -> "<ul>" + (("<li>" + route + "</li>") for route in stop.routes).join("") + "</ul>")
-
-      if (not Modernizr.touch)
-        $(".stop").qtip(
-          content:
-            attr: 'text'
-          show: 'mouseover'
-          hide: 'mouseout'
-        )
-
+      @selector.selectAll("g").attr("transform", (cluster) => 
+        @transform cluster[0]
+      )
+    addStops: (stops) ->
+      @stops = stops
+      
+      @update()
+      
   #$.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")
 
   class RentalsLayer extends Layer
