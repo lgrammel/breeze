@@ -31,7 +31,7 @@ if Modernizr.svg and Modernizr.inlinesvg
       if @zoomChanged
         p0 = @map.pointLocation({x: 0, y: 0})
         p1 = @map.pointLocation({x: 1, y: 1})
-        @distance = Math.max(Math.abs(p0.lat - p1.lat),Math.abs(p0.lon - p1.lon))
+        @distance = {lat:Math.abs(p0.lat - p1.lat),lon:Math.abs(p0.lon - p1.lon)}
       @distance      
     
     constructor: (@map) ->
@@ -56,7 +56,7 @@ if Modernizr.svg and Modernizr.inlinesvg
         
         i = 0
         while i < currentStops.length
-          if Math.abs(currentStops[i].lat - stop.lat) < distance and Math.abs(currentStops[i].lon - stop.lon) < distance
+          if Math.abs(currentStops[i].lat - stop.lat) < distance * @pixelDistance().lat and Math.abs(currentStops[i].lon - stop.lon) < distance * @pixelDistance().lon
             aStop = currentStops.splice i,1
             cluster.push aStop[0]
             i--
@@ -116,7 +116,7 @@ if Modernizr.svg and Modernizr.inlinesvg
     
     update: ->
       if @zoomChanged()
-        @clusters = @cluster(@stops,@pixelDistance() * 7)
+        @clusters = @cluster(@stops,7)
 
         marker = @selector.selectAll("g").data(@clusters)
         marker.enter().append("g")
