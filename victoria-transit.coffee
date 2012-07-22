@@ -21,14 +21,14 @@ if Modernizr.svg and Modernizr.inlinesvg
 
   # Classes
   class Layer
-    @zoom = 0
-    zoomChanged: ->
-      if @zoom != @map.zoom()
-        @zoom = @map.zoom()
-        
+    zoomLevel: ->
+      @map.zoom()
+    
+    @prevZoom = 0    
     @distance = 0
     pixelDistance: ->
-      if @zoomChanged
+      if @zoomLevel != @prevZoom
+        @prevZoom = @zoomLevel
         p0 = @map.pointLocation({x: 0, y: 0})
         p1 = @map.pointLocation({x: 1, y: 1})
         @distance = {lat:Math.abs(p0.lat - p1.lat),lon:Math.abs(p0.lon - p1.lon)}
@@ -44,20 +44,24 @@ if Modernizr.svg and Modernizr.inlinesvg
       d = @map.locationPoint(location)
       "translate(" + d.x + "," + d.y + ")"
       
-    cluster: (stops, distance) ->
-      currentStops = stops.slice(0)
+    cluster: (elements, distance) ->
+      currentElements = elements.slice(0)
+      pixelDistance = @pixelDistance()
+      distLat = distance * pixelDistance.lat
+      distLon = distance * pixelDistance.lon 
+       
       
       clustered = []
-      while currentStops.length > 0
-        stop = currentStops.shift()
+      while currentElements.length > 0
+        stop = currentElements.shift()
         
         cluster = []
         cluster.push stop
         
         i = 0
-        while i < currentStops.length
-          if Math.abs(currentStops[i].lat - stop.lat) < distance * @pixelDistance().lat and Math.abs(currentStops[i].lon - stop.lon) < distance * @pixelDistance().lon
-            aStop = currentStops.splice i,1
+        while i < currentElements.length
+          if Math.abs(currentElements[i].lat - stop.lat) < distLat and Math.abs(currentElements[i].lon - stop.lon) < distLon
+            aStop = currentElements.splice i,1
             cluster.push aStop[0]
             i--
           i++
@@ -111,35 +115,61 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
   class BusStopLayer extends Layer
-    stops = []
-    clusters = []   
+    @clusters = []   
+    @stops = []
+    @prevNumStops = 0
+    @prevZoom = 0
     
     update: ->
-      if @zoomChanged()
-        @clusters = @cluster(@stops,7)
+      
+      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
+        @prevZoom = @zoomLevel()
+        @prevNumStops = @stops.length 
+        
+        start = new Date()
+        @clusters = @cluster(@stops,10)
+        console.log @clusters
+        console.log "clustering: " + ((new Date()) - start)
 
+        start = new Date()
         marker = @selector.selectAll("g").data(@clusters)
         marker.enter().append("g")
         .append("circle")
-        .attr("class", "stop")
+        .attr("class", "stop no-tip")
+        marker.exit().remove()
+        @selector.selectAll("g").selectAll("circle")
         .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
         .attr("text", (cluster) -> "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-        marker.exit().remove()
+        console.log "laying out: " + ((new Date()) - start)
         
-        if (not Modernizr.touch)
-          $(".stop").qtip(
-            content:
-              attr: 'text'
-            show: 'mouseover'
-            hide: 'mouseout'
-          )
+        start = new Date()
+
+        console.log "pop up: " + ((new Date()) - start)
       
       # TODO just have a single g element that is transformed
+      
+      start = new Date()
       @selector.selectAll("g").attr("transform", (cluster) => 
         @transform cluster[0]
       )
+      console.log "transforming: " + ((new Date()) - start)
     addStops: (stops) ->
+      stops.sort((a,b) -> a.lat-b.lat)
       @stops = stops
+      
+      if (not Modernizr.touch)
+        $(".stop").live("mouseover", (event) ->
+          console.log event
+          $(this).qtip(
+            overwrite: false
+            content:
+              attr: 'text'
+            show: 
+              event: event.type,
+              ready: true
+            hide: 'mouseout'
+          , event)
+        )
       
       @update()
       
