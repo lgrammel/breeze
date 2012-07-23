@@ -134,3 +134,7 @@ html, body, #map {
 	width: 100%;
 }
 
+#additional-expand {
+    color: white;
+    text-decoration: underline;
+}
