@@ -21,14 +21,14 @@ if Modernizr.svg and Modernizr.inlinesvg
 
   # Classes
   class Layer
-    zoomLevel: ->
-      @map.zoom()
+    zoomLevel: -> @map.zoom()
     
     @prevZoom = 0    
     @distance = 0
+
     pixelDistance: ->
-      if @zoomLevel != @prevZoom
-        @prevZoom = @zoomLevel
+      if @zoomLevel() != @prevZoom
+        @prevZoom = @zoomLevel()
         p0 = @map.pointLocation({x: 0, y: 0})
         p1 = @map.pointLocation({x: 1, y: 1})
         @distance = {lat:Math.abs(p0.lat - p1.lat),lon:Math.abs(p0.lon - p1.lon)}
@@ -118,48 +118,43 @@ if Modernizr.svg and Modernizr.inlinesvg
     @clusters = []   
     @stops = []
     @prevNumStops = 0
-    @prevZoom = 0
-    
-    update: ->
-      
-      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
-        @prevZoom = @zoomLevel()
-        @prevNumStops = @stops.length 
-        
-        start = new Date()
-        @clusters = @cluster(@stops,10)
-        console.log @clusters
-        console.log "clustering: " + ((new Date()) - start)
 
-        start = new Date()
+    update: ->
+      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
+        @prevNumStops = @stops.length
+        
+        @clusters = @cluster(@stops,10)
+
+        currentZoomLevel = @zoomLevel()
         marker = @selector.selectAll("g").data(@clusters)
+
+        # retained markers are updated
+        marker.select('circle')
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", (cluster) ->
+          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
+
+        # new markers are added
         marker.enter().append("g")
         .append("circle")
         .attr("class", "stop no-tip")
-        marker.exit().remove()
-        @selector.selectAll("g").selectAll("circle")
         .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
-        .attr("text", (cluster) -> "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-        console.log "laying out: " + ((new Date()) - start)
-        
-        start = new Date()
+        .attr("text", (cluster) ->
+          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
 
-        console.log "pop up: " + ((new Date()) - start)
-      
+        # old markers are removed
+        marker.exit().remove()
+
       # TODO just have a single g element that is transformed
-      
-      start = new Date()
-      @selector.selectAll("g").attr("transform", (cluster) => 
-        @transform cluster[0]
-      )
-      console.log "transforming: " + ((new Date()) - start)
+      @selector.selectAll("g")
+      .attr("transform", (cluster) => @transform cluster[0])
+
     addStops: (stops) ->
       stops.sort((a,b) -> a.lat-b.lat)
       @stops = stops
-      
+
       if (not Modernizr.touch)
         $(".stop").live("mouseover", (event) ->
-          console.log event
           $(this).qtip(
             overwrite: false
             content:
@@ -170,7 +165,7 @@ if Modernizr.svg and Modernizr.inlinesvg
             hide: 'mouseout'
           , event)
         )
-      
+
       @update()
       
   #$.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")
