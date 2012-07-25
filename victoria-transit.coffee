@@ -167,7 +167,7 @@ if Modernizr.svg and Modernizr.inlinesvg
       return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds())
 
     setListingDisplay: (rental) ->
-      listings = (("<li>" + suite.bedrooms + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
+      listings = (("<li>" + (if suite.bedrooms then suite.bedrooms else "unknown") + " bedroom: " + (if suite.price > 0 then "$" + suite.price else "Unknown") + "</li>" ) for suite in rental.availabilities)
 
       output = ""
       if rental.image_url
