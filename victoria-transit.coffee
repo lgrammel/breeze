@@ -84,6 +84,7 @@ if Modernizr.svg and Modernizr.inlinesvg
         @prevNumStops = @stops.length
         @prevZoom = @zoomLevel()
         
+        # We clustered the stops if they're within 10 pixels, do the same for the radiuses
         @clusters = @cluster(@stops,10)
         
       @localClusters = @filter(@clusters,@distanceInPixels())
@@ -122,6 +123,7 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("circle.reach").attr('r', @distanceInPixels())
 
     addStops: (stops) ->
+      stops.sort((a,b) -> a.lat-b.lat)
       @stops = stops
       
       # TODO just have a single g element that is transformed
@@ -189,13 +191,14 @@ if Modernizr.svg and Modernizr.inlinesvg
       for stop in cluster
         for route in stop.routes
           routes.push route
+      # This next two lines should remove duplicates
       routes.sort()
       routes = (route for route, i in routes when i=0 or route != routes[i-1])
       console.log routes
       "<ul>" + (("<li>" + route + "</li>") for route in routes).join("") + "</ul>"
 
     addStops: (stops) ->
-      #stops.sort((a,b) -> a.lat-b.lat)
+      stops.sort((a,b) -> a.lat-b.lat)
       @stops = stops
 
       if (not Modernizr.touch)
