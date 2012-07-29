@@ -66,9 +66,21 @@ if Modernizr.svg and Modernizr.inlinesvg
             i--
           i++
         clustered.push cluster  
-      clustered   
+      clustered  
+      
+    filter: (clusters, distance) ->
+      
+      tLeft = @map.pointLocation({x:0-distance,y:0-distance})
+      bRight = @map.pointLocation({x: $(window).width()+distance, y: $(window).height()+distance})
+       
+      output = (cluster for cluster in clusters when bRight.lat <= cluster[0].lat and cluster[0].lat <= tLeft.lat and tLeft.lon <= cluster[0].lon and cluster[0].lon <= bRight.lon)
+      output
 
   class DistanceLayer extends Layer
+    stops = []
+    clusters = []
+    
+    
     update: ->
       @selector.selectAll("g").attr("transform", @transform)
       @updateCircleRadius()
@@ -115,25 +127,33 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
   class BusStopLayer extends Layer
-    @clusters = []   
-    @stops = []
-    @prevNumStops = 0
+    clusters = []   
+    stops = []
+    prevNumStops = 0
+    prevClusters = []
 
     update: ->
+      # If the zoom level changed, re cluster the stops
       if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
         @prevNumStops = @stops.length
+        @prevZoom = @zoomLevel()
         
         @clusters = @cluster(@stops,10)
+        
+      # Filter out any stops not within an acceptable region of the screen. We'll add them as needed
+      @localClusters = @filter(@clusters,10)
+      
+      if (not @prevClusters) or @prevClusters != @localClusters
+        @prevClusters = @localClusters  
 
-        currentZoomLevel = @zoomLevel()
-        marker = @selector.selectAll("g").data(@clusters)
-
+        marker = @selector.selectAll("g").data(@localClusters)
+  
         # retained markers are updated
         marker.select('circle')
         .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
         .attr("text", (cluster) ->
           "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-
+  
         # new markers are added
         marker.enter().append("g")
         .append("circle")
@@ -142,6 +162,8 @@ if Modernizr.svg and Modernizr.inlinesvg
         .attr("text", (cluster) ->
           "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
 
+        #marker.attr("transform", (cluster) => @transform cluster[0])
+  
         # old markers are removed
         marker.exit().remove()
 
@@ -150,7 +172,7 @@ if Modernizr.svg and Modernizr.inlinesvg
       .attr("transform", (cluster) => @transform cluster[0])
 
     addStops: (stops) ->
-      stops.sort((a,b) -> a.lat-b.lat)
+      #stops.sort((a,b) -> a.lat-b.lat)
       @stops = stops
 
       if (not Modernizr.touch)
@@ -370,4 +392,4 @@ if Modernizr.svg and Modernizr.inlinesvg
 else
   $('#unsupportedBrowser').show();
   $('.regular').hide();
-  recordEvent('Unsupported Browser',"","")
+  recordEvent("Unsupported Browser","","")
