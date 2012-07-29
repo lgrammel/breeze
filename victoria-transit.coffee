@@ -77,10 +77,29 @@ if Modernizr.svg and Modernizr.inlinesvg
   class DistanceLayer extends Layer
     stops = []
     clusters = []
+    prevLocalClusters = []
     
     update: ->
-      @selector.selectAll("g").attr("transform", @transform)
-      @updateCircleRadius()
+      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
+        @prevNumStops = @stops.length
+        @prevZoom = @zoomLevel()
+        
+        @clusters = @cluster(@stops,10)
+        
+      @localClusters = @filter(@clusters,@distanceInPixels())
+      if (not @prevLocalClusters) or @prevLocalClusters != @localClusters
+        # Add new incoming circles
+        marker = @selector.selectAll("g").data(@localClusters)
+        marker.enter().append("g")
+        .append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+        
+        # Remove old circles
+        marker.exit().remove()
+        
+        #Do this to all remaining circles
+        @updateCircleRadius()
+      
+      @selector.selectAll("g").attr("transform", (cluster) => @transform cluster[0])
 
     distanceInMeters = (if $.cookie("distance") then $.cookie("distance") else 500) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
     distanceInMeters: () ->
@@ -103,9 +122,13 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("circle.reach").attr('r', @distanceInPixels())
 
     addStops: (stops) ->
+      @stops = stops
+      
       # TODO just have a single g element that is transformed
-      marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-      marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+      #marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
+      #marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+        
+      @update()  
 
   class BusRouteLayer extends Layer
 
@@ -145,18 +168,14 @@ if Modernizr.svg and Modernizr.inlinesvg
         # retained markers are updated
         marker.select('circle')
         .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
-        .attr("text", (cluster) ->
-          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
+        .attr("text", @representCluster)
   
         # new markers are added
         marker.enter().append("g")
         .append("circle")
         .attr("class", "stop no-tip")
         .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
-        .attr("text", (cluster) ->
-          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-  
-        #marker.attr("transform", (cluster) => @transform cluster[0])
+        .attr("text", @representCluster)
   
         # old markers are removed
         marker.exit().remove()
@@ -164,6 +183,16 @@ if Modernizr.svg and Modernizr.inlinesvg
       # TODO just have a single g element that is transformed
       @selector.selectAll("g")
       .attr("transform", (cluster) => @transform cluster[0])
+
+    representCluster: (cluster) ->
+      routes = []
+      for stop in cluster
+        for route in stop.routes
+          routes.push route
+      routes.sort()
+      routes = (route for route, i in routes when i=0 or route != routes[i-1])
+      console.log routes
+      "<ul>" + (("<li>" + route + "</li>") for route in routes).join("") + "</ul>"
 
     addStops: (stops) ->
       #stops.sort((a,b) -> a.lat-b.lat)
