@@ -78,7 +78,6 @@ if Modernizr.svg and Modernizr.inlinesvg
     stops = []
     clusters = []
     
-    
     update: ->
       @selector.selectAll("g").attr("transform", @transform)
       @updateCircleRadius()
