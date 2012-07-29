@@ -89,6 +89,7 @@ if Modernizr.svg and Modernizr.inlinesvg
         
       @localClusters = @filter(@clusters,@distanceInPixels())
       if (not @prevLocalClusters) or @prevLocalClusters != @localClusters
+        @prevLocalClusters = @localClusters
         # Add new incoming circles
         marker = @selector.selectAll("g").data(@localClusters)
         marker.enter().append("g")
