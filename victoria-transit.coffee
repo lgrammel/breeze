@@ -128,6 +128,7 @@ if Modernizr.svg and Modernizr.inlinesvg
     clusters = []   
     stops = []
     prevNumStops = 0
+    prevLocalClusters = []
 
     update: ->
       # If the zoom level changed, re cluster the stops
@@ -139,33 +140,31 @@ if Modernizr.svg and Modernizr.inlinesvg
         
       # Filter out any stops not within an acceptable region of the screen. We'll add them as needed
       @localClusters = @filter(@clusters,10)
-      
-      console.log @localClusters
-
-      marker = @selector.selectAll("g").data(@localClusters)
-
-      # retained markers are updated
-      marker.select('circle')
-      .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
-      .attr("text", (cluster) ->
-        "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-
-      # new markers are added
-      marker.enter().append("g")
-      .append("circle")
-      .attr("class", "stop no-tip")
-      .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
-      .attr("text", (cluster) ->
-        "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
-
-      marker.attr("transform", (cluster) => @transform cluster[0])
-
-      # old markers are removed
-      marker.exit().remove()
+      if (not @prevLocalClusters) or @localClusters != @prevLocalClusters
+        marker = @selector.selectAll("g").data(@localClusters)
+  
+        # retained markers are updated
+        marker.select('circle')
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", (cluster) ->
+          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
+  
+        # new markers are added
+        marker.enter().append("g")
+        .append("circle")
+        .attr("class", "stop no-tip")
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", (cluster) ->
+          "<ul>" + ((("<li>" + route + "</li>") for route in stop.routes).join("") for stop in cluster).join("") + "</ul>")
+  
+        #marker.attr("transform", (cluster) => @transform cluster[0])
+  
+        # old markers are removed
+        marker.exit().remove()
 
       # TODO just have a single g element that is transformed
-      #@selector.selectAll("g")
-      #.attr("transform", (cluster) => @transform cluster[0])
+      @selector.selectAll("g")
+      .attr("transform", (cluster) => @transform cluster[0])
 
     addStops: (stops) ->
       #stops.sort((a,b) -> a.lat-b.lat)
