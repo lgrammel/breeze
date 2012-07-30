@@ -80,7 +80,7 @@ if Modernizr.svg and Modernizr.inlinesvg
     prevLocalClusters = []
     
     update: ->
-      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
+      if @zoomLevel() != @prevZoom or (@stops and @prevNumStops != @stops.length)
         @prevNumStops = @stops.length
         @prevZoom = @zoomLevel()
         
@@ -157,7 +157,7 @@ if Modernizr.svg and Modernizr.inlinesvg
 
     update: ->
       # If the zoom level changed, re cluster the stops
-      if @zoomLevel() != @prevZoom or @prevNumStops != @stops.length
+      if @zoomLevel() != @prevZoom or (@stops and @prevNumStops != @stops.length)
         @prevNumStops = @stops.length
         @prevZoom = @zoomLevel()
         
@@ -195,7 +195,6 @@ if Modernizr.svg and Modernizr.inlinesvg
       # This next two lines should remove duplicates
       routes.sort()
       routes = (route for route, i in routes when i=0 or route != routes[i-1])
-      console.log routes
       "<ul>" + (("<li>" + route + "</li>") for route in routes).join("") + "</ul>"
 
     addStops: (stops) ->
