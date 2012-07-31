@@ -169,32 +169,24 @@
       prevLocalClusters = [];
 
       DistanceLayer.prototype.update = function() {
-        var marker, start,
+        var marker,
           _this = this;
         if (this.zoomLevel() !== this.prevZoom || (this.stops && this.prevNumStops !== this.stops.length)) {
           this.prevNumStops = this.stops.length;
           this.prevZoom = this.zoomLevel();
-          start = new Date();
           this.clusters = this.cluster(this.stops, 10);
-          console.log("Clustering stop distances: " + (new Date() - start));
         }
-        start = new Date();
         this.localClusters = this.filter(this.clusters, this.distanceInPixels());
-        console.log("Filtering Stop distances: " + (new Date() - start));
         if ((!this.prevLocalClusters) || this.prevLocalClusters !== this.localClusters) {
           this.prevLocalClusters = this.localClusters;
-          start = new Date();
           marker = this.selector.selectAll("g").data(this.localClusters);
           marker.enter().append("g").append("circle").attr("class", "reach").attr('r', this.distanceInPixels());
           marker.exit().remove();
           this.updateCircleRadius();
-          console.log("Stop Distance updating: " + (new Date() - start));
         }
-        start = new Date();
-        this.selector.selectAll("g").attr("transform", function(cluster) {
+        return this.selector.selectAll("g").attr("transform", function(cluster) {
           return _this.transform(cluster[0]);
         });
-        return console.log("Stop Distance move: " + (new Date() - start));
       };
 
       distanceInMeters = ($.cookie("distance") ? $.cookie("distance") : 500);
