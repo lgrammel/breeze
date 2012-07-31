@@ -117,19 +117,14 @@ if Modernizr.svg and Modernizr.inlinesvg
         @prevZoom = @zoomLevel()
         
         # We clustered the stops if they're within 10 pixels, do the same for the stop layer
-        start = new Date()
         @clusters = @cluster(@stops,10)
-        console.log "Clustering stop distances: " + (new Date() - start)
       
-      start = new Date()  
       @localClusters = @filter(@clusters,@distanceInPixels())
-      console.log "Filtering Stop distances: " + (new Date() - start)
       
       if (not @prevLocalClusters) or @prevLocalClusters != @localClusters
         @prevLocalClusters = @localClusters
         # Add new incoming circles
         
-        start = new Date()
         marker = @selector.selectAll("g").data(@localClusters)
         marker.enter().append("g")
         .append("circle").attr("class", "reach").attr('r', @distanceInPixels())
@@ -139,11 +134,8 @@ if Modernizr.svg and Modernizr.inlinesvg
         
         #Do this to all remaining circles
         @updateCircleRadius()
-        console.log "Stop Distance updating: " + (new Date() - start)
       
-      start = new Date()
       @selector.selectAll("g").attr("transform", (cluster) => @transform cluster[0])
-      console.log "Stop Distance move: " + (new Date() - start)
 
     distanceInMeters = (if $.cookie("distance") then $.cookie("distance") else 500) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
     distanceInMeters: () ->
