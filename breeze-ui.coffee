@@ -4,6 +4,49 @@ if Modernizr.svg and Modernizr.inlinesvg
   if Modernizr.touch
     $(".github").hide()
     
+  $(".header").show()
+  
+  recordOutboundLink = (link, category, action, label) ->
+    recordEvent category, action, label
+    setTimeout "window.open(\"" + link.href + "\",\"_blank\")", 100
+  
+  recordEvent = (category, action, label) ->
+    _gat._getTrackerByName()._trackEvent category, action, label
+  
+  setVariable = (index, name, value) ->
+    # This custom var is set to slot #1.  Required parameter.
+    # The name acts as a kind of category for the user activity.  Required parameter.
+    # This value of the custom variable.  Required parameter.
+    _gaq.push ["_setCustomVar", index, name, value, 2] # Sets the scope to session-level.  Optional parameter.
+  
+  headerToggle = (element) ->
+    if $("#standard-options").is(":visible")
+      $("#standard-options").hide "slow"
+      $(element).button "option", "icons",
+        primary: "ui-icon-triangle-1-s"
+    else
+      $("#standard-options").show "slow"
+      $(element).button "option", "icons",
+        primary: "ui-icon-triangle-1-n"
+  
+  $(".header-expand").button(
+    icons:
+      primary: "ui-icon ui-icon-triangle-1-n"
+    text: false
+  ).click ->
+    headerToggle this
+    
+  toggleAdditional = ->
+    if $("#additional-notices").is(":visible")
+      $("#additional-notices").hide "slow"
+      $("a#additional-expand").text "additional notices"
+    else
+      $("#additional-notices").show "slow"
+      $("a#additional-expand").text "less notices"
+  
+  $("a#additional-expand").click ->
+    toggleAdditional()  
+    
   # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
   polymaps = org.polymaps
 
@@ -21,6 +64,17 @@ if Modernizr.svg and Modernizr.inlinesvg
 
   # Classes
   class Layer
+    zoomLevel: -> @map.zoom()
+    
+    @prevZoom = 0    
+    @distance = 0
+
+    pixelDistance: ->
+      p0 = @map.pointLocation({x: 0, y: 0})
+      p1 = @map.pointLocation({x: 1, y: 1})
+      @distance = {lat:Math.abs(p0.lat - p1.lat),lon:Math.abs(p0.lon - p1.lon)}
+      @distance      
+    
     constructor: (@map) ->
       @selector = d3.select("#map svg").insert("svg:g")
       @map.on "move", => @update()
@@ -30,11 +84,69 @@ if Modernizr.svg and Modernizr.inlinesvg
     transform: (location) =>
       d = @map.locationPoint(location)
       "translate(" + d.x + "," + d.y + ")"
+      
+    cluster: (elements, distance) ->
+      currentElements = elements.slice(0)
+      pixelDistance = @pixelDistance()
+      distLat = distance * pixelDistance.lat
+      distLon = distance * pixelDistance.lon 
+       
+      
+      clustered = []
+      while currentElements.length > 0
+        stop = currentElements.shift()
+        
+        cluster = []
+        cluster.push stop
+        
+        i = 0
+        while i < currentElements.length
+          if Math.abs(currentElements[i].lat - stop.lat) < distLat and Math.abs(currentElements[i].lon - stop.lon) < distLon
+            aStop = currentElements.splice i,1
+            cluster.push aStop[0]
+            i--
+          i++
+        clustered.push cluster  
+      clustered  
+      
+    filter: (clusters, distance) ->
+      
+      tLeft = @map.pointLocation({x:0-distance,y:0-distance})
+      bRight = @map.pointLocation({x: $(window).width()+distance, y: $(window).height()+distance})
+       
+      output = (cluster for cluster in clusters when bRight.lat <= cluster[0].lat and cluster[0].lat <= tLeft.lat and tLeft.lon <= cluster[0].lon and cluster[0].lon <= bRight.lon)
+      output
 
   class DistanceLayer extends Layer
+    stops = []
+    clusters = []
+    prevLocalClusters = []
+    
     update: ->
-      @selector.selectAll("g").attr("transform", @transform)
-      @updateCircleRadius()
+      if @zoomLevel() != @prevZoom or (@stops and @prevNumStops != @stops.length)
+        @prevNumStops = @stops.length
+        @prevZoom = @zoomLevel()
+        
+        # We clustered the stops if they're within 10 pixels, do the same for the stop layer
+        @clusters = @cluster(@stops,10)
+      
+      @localClusters = @filter(@clusters,@distanceInPixels())
+      
+      if (not @prevLocalClusters) or @prevLocalClusters != @localClusters
+        @prevLocalClusters = @localClusters
+        # Add new incoming circles
+        
+        marker = @selector.selectAll("g").data(@localClusters)
+        marker.enter().append("g")
+        .append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+        
+        # Remove old circles
+        marker.exit().remove()
+        
+        #Do this to all remaining circles
+        @updateCircleRadius()
+      
+      @selector.selectAll("g").attr("transform", (cluster) => @transform cluster[0])
 
     distanceInMeters = (if $.cookie("distance") then $.cookie("distance") else 500) # (private) assume you can walk 500m in 6min, this seems to be a good default distance
     distanceInMeters: () ->
@@ -57,11 +169,17 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("circle.reach").attr('r', @distanceInPixels())
 
     addStops: (stops) ->
+      stops.sort((a,b) -> a.lat-b.lat)
+      @stops = stops
+      
       # TODO just have a single g element that is transformed
-      marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-      marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+      #marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
+      #marker.append("circle").attr("class", "reach").attr('r', @distanceInPixels())
+        
+      @update()  
 
   class BusRouteLayer extends Layer
+
     svgLine = d3.svg.line().x((d) -> d.x).y((d) -> d.y).interpolate("linear")
 
     update: () -> @selector.selectAll("path").attr("d", (d) => @line(d))
@@ -77,23 +195,72 @@ if Modernizr.svg and Modernizr.inlinesvg
       @selector.selectAll("g").data(routes).enter().append("path").attr("class", "route").attr("d", (d) => @line(d))
 
   class BusStopLayer extends Layer
-    update: -> @selector.selectAll("g").attr("transform", @transform)
-    addStops: (stops) ->
+    clusters = []   
+    stops = []
+    prevNumStops = 0
+    prevLocalClusters = []
+
+    update: ->
+      # If the zoom level changed, re cluster the stops
+      if @zoomLevel() != @prevZoom or (@stops and @prevNumStops != @stops.length)
+        @prevNumStops = @stops.length
+        @prevZoom = @zoomLevel()
+        
+        @clusters = @cluster(@stops,10)
+        
+      # Filter out any stops not within an acceptable region of the screen. We'll add them as needed
+      @localClusters = @filter(@clusters,10)
+      if (not @prevLocalClusters) or @localClusters != @prevLocalClusters
+        marker = @selector.selectAll("g").data(@localClusters)
+  
+        # retained markers are updated
+        marker.select('circle')
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", @representCluster)
+  
+        # new markers are added
+        marker.enter().append("g")
+        .append("circle")
+        .attr("class", "stop no-tip")
+        .attr('r', (cluster) -> if cluster.length > 1 then 5 else 3.5)
+        .attr("text", @representCluster)
+  
+        # old markers are removed
+        marker.exit().remove()
+
       # TODO just have a single g element that is transformed
-      marker = @selector.selectAll("g").data(stops).enter().append("g").attr("transform", @transform)
-      marker.append("circle")
-      .attr("class", "stop")
-      .attr('r', 3.5)
-      .attr("text", (stop) -> "<ul>" + (("<li>" + route + "</li>") for route in stop.routes).join("") + "</ul>")
+      @selector.selectAll("g")
+      .attr("transform", (cluster) => @transform cluster[0])
+
+    representCluster: (cluster) ->
+      routes = []
+      for stop in cluster
+        for route in stop.routes
+          routes.push route
+      # This next two lines should remove duplicates
+      routes.sort((a,b) -> parseInt(a.match(/^\d+/)[0]) - parseInt(b.match(/^\d+/)[0]))
+      routes = (route for route, i in routes when i=0 or route != routes[i-1])
+      "<ul>" + (("<li>" + route + "</li>") for route in routes).join("") + "</ul>"
+
+    addStops: (stops) ->
+      stops.sort((a,b) -> a.lat-b.lat)
+      @stops = stops
 
       if (not Modernizr.touch)
-        $(".stop").qtip(
-          content:
-            attr: 'text'
-          show: 'mouseover'
-          hide: 'mouseout'
+        $(".stop").live("mouseover", (event) ->
+          $(this).qtip(
+            overwrite: false
+            content:
+              attr: 'text'
+            show: 
+              event: event.type,
+              ready: true
+            hide: 'mouseout'
+          , event)
         )
 
+      @update()
+      
   #$.cookie("viewed-listings") then JSON.parse($.cookie("viewed-listings")
 
   class RentalsLayer extends Layer
