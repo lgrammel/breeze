@@ -5,6 +5,36 @@ if Modernizr.svg and Modernizr.inlinesvg
     $(".github").hide()
     
   $(".header").show()
+  
+  recordOutboundLink = (link, category, action, label) ->
+    recordEvent category, action, label
+    setTimeout "window.open(\"" + link.href + "\",\"_blank\")", 100
+  
+  recordEvent = (category, action, label) ->
+    _gat._getTrackerByName()._trackEvent category, action, label
+  
+  setVariable = (index, name, value) ->
+    # This custom var is set to slot #1.  Required parameter.
+    # The name acts as a kind of category for the user activity.  Required parameter.
+    # This value of the custom variable.  Required parameter.
+    _gaq.push ["_setCustomVar", index, name, value, 2] # Sets the scope to session-level.  Optional parameter.
+  
+  toggleClick = (element) ->
+    if $("#standard-options").is(":visible")
+      $("#standard-options").hide "slow"
+      $(element).button "option", "icons",
+        primary: "ui-icon-triangle-1-s"
+    else
+      $("#standard-options").show "slow"
+      $(element).button "option", "icons",
+        primary: "ui-icon-triangle-1-n"
+  
+  $(".header-expand").button(
+    icons:
+      primary: "ui-icon ui-icon-triangle-1-n"
+    text: false
+  ).click ->
+    toggleClick this
     
   # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
   polymaps = org.polymaps
