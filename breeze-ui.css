@@ -18,6 +18,7 @@ html, body, #map {
 
 .header {
     position: absolute;
+    display: none;
     left: 0px;
     top: 0px;
     background: #fff;

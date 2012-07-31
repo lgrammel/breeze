@@ -4,6 +4,8 @@ if Modernizr.svg and Modernizr.inlinesvg
   if Modernizr.touch
     $(".github").hide()
     
+  $(".header").show()
+    
   # Code based on Polymaps example from Mike Bostock http://bl.ocks.org/899670
   polymaps = org.polymaps
 
