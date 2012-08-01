@@ -13,16 +13,24 @@
       $(".github").hide();
     }
     $(".header").show();
+    $("a[rel*='external']").click(function() {
+      var link;
+      link = $(this);
+      return recordEvent('External Link', link.text(), link.attr('href'));
+    });
     recordOutboundLink = function(link, category, action, label) {
       recordEvent(category, action, label);
       return setTimeout("window.open(\"" + link.href + "\",\"_blank\")", 100);
     };
+    window.recordOutboundLink = recordOutboundLink;
     recordEvent = function(category, action, label) {
       return _gat._getTrackerByName()._trackEvent(category, action, label);
     };
+    window.recordEvent = recordEvent;
     setVariable = function(index, name, value) {
       return _gaq.push(["_setCustomVar", index, name, value, 2]);
     };
+    window.setVariable = setVariable;
     headerToggle = function(element) {
       if ($("#standard-options").is(":visible")) {
         $("#standard-options").hide("slow");
@@ -546,9 +554,9 @@
         })();
         output = "";
         if (rental.image_url) {
-          output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\"><img class=\"rental-img\" src=\"" + rental.image_url + "\"></a>";
+          output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.source + "', '" + rental.url + "');return false;\"><img class=\"rental-img\" src=\"" + rental.image_url + "\"></a>";
         }
-        output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.url + "', '" + rental.source + "');return false;\">View Original Listing</a>";
+        output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.source + "', '" + rental.url + "');return false;\">View Original Listing</a>";
         return output;
       };
 
@@ -566,7 +574,7 @@
             expires: 30
           });
           _this.selector.selectAll("g").select("rect").attr("class", _this.rentalClass);
-          return recordEvent('Rental View', rental.url, rental.source);
+          return recordEvent('Rental View', rental.source, rental.url);
         });
         return $(".rental").qtip({
           content: {
@@ -675,7 +683,7 @@
   } else {
     $('#unsupportedBrowser').show();
     $('.regular').hide();
-    recordEvent('Unsupported Browser', "", "");
+    recordEvent('Unsupported Browser', 'No SVG', navigator.userAgent);
   }
 
 }).call(this);
