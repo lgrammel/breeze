@@ -351,9 +351,7 @@
             routes.push(route);
           }
         }
-        routes.sort(function(a, b) {
-          return parseInt(a.match(/^\d+/)[0]) - parseInt(b.match(/^\d+/)[0]);
-        });
+        routes = routes.sort();
         routes = (function() {
           var _k, _len2, _results;
           _results = [];
@@ -365,6 +363,9 @@
           }
           return _results;
         })();
+        routes = routes.sort(function(a, b) {
+          return parseInt(a.match(/^\d+/)[0]) - parseInt(b.match(/^\d+/)[0]);
+        });
         return "<ul>" + ((function() {
           var _k, _len2, _results;
           _results = [];

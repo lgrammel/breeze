@@ -238,8 +238,13 @@ if Modernizr.svg and Modernizr.inlinesvg
         for route in stop.routes
           routes.push route
       # This next two lines should remove duplicates
-      routes.sort((a,b) -> parseInt(a.match(/^\d+/)[0]) - parseInt(b.match(/^\d+/)[0]))
+      routes = routes.sort()
       routes = (route for route, i in routes when i=0 or route != routes[i-1])
+      
+      # Now we sort by the numeric route value
+      routes = routes.sort((a,b) -> parseInt(a.match(/^\d+/)[0]) - parseInt(b.match(/^\d+/)[0]))
+      
+      # Now layout the sorted routes
       "<ul>" + (("<li>" + route + "</li>") for route in routes).join("") + "</ul>"
 
     addStops: (stops) ->
