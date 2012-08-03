@@ -20,12 +20,6 @@ setVariable = (index, name, value) ->
 window.setVariable = setVariable
 
 if Modernizr.svg and Modernizr.inlinesvg
-  trackEvent('RentalMap loaded')
-  
-  $(window).unload( () ->
-    trackEvent('RentalMap closed')
-  )
-  
   if $(window).height() < 500 or $(window).width() < 500
     $(".desktop").hide()
   if Modernizr.touch
@@ -33,22 +27,17 @@ if Modernizr.svg and Modernizr.inlinesvg
     
   $(".header").show()
   
-  # Set to track outbound links from the site
-  $("a[rel*='external']").click(->
-    link = $(this)
-    recordEvent('External Link',link.text(),link.attr('href'))
-    trackEvent('External Link',{"Link Text":link.text(),"url":link.attr('href')})
-  )
-  
   headerToggle = (element) ->
     if $("#standard-options").is(":visible")
       $("#standard-options").hide "slow"
       $(element).button "option", "icons",
         primary: "ui-icon-triangle-1-s"
+      trackEvent 'hid options'
     else
       $("#standard-options").show "slow"
       $(element).button "option", "icons",
         primary: "ui-icon-triangle-1-n"
+      trackEvent 'show options'
   
   $(".header-expand").button(
     icons:
@@ -61,9 +50,11 @@ if Modernizr.svg and Modernizr.inlinesvg
     if $("#additional-notices").is(":visible")
       $("#additional-notices").hide "slow"
       $("a#additional-expand").text "additional notices"
+      trackEvent 'hid notices'
     else
       $("#additional-notices").show "slow"
       $("a#additional-expand").text "less notices"
+      trackEvent 'show notices'
   
   $("a#additional-expand").click ->
     toggleAdditional()  
@@ -424,6 +415,8 @@ if Modernizr.svg and Modernizr.inlinesvg
       min: 0
       max: 2500
       slide: (event, ui) -> sliderChanged(ui.value)
+      stop: (event, ui) -> trackEvent 'distance changed'
+        distance: distanceLayer.distanceInMeters()
     )
 
     sliderChanged($("#slider-distance-element").slider("value"))
@@ -442,6 +435,9 @@ if Modernizr.svg and Modernizr.inlinesvg
       min: 0
       max: 3000
       slide: (event, ui) -> sliderChanged(ui.values)
+      stop: (event, ui) -> trackEvent 'price changed'
+        'low price': rentalLayer.priceRange()[0]
+        'high price': rentalLayer.priceRange()[1]
     )
 
     sliderChanged($("#slider-price-element").slider("values"))
@@ -459,6 +455,9 @@ if Modernizr.svg and Modernizr.inlinesvg
       min: 0
       max: 5
       slide: (event, ui) -> sliderChanged(ui.values)
+      stop: (event, ui) -> trackEvent '# rooms changed'
+        'min rooms': rentalLayer.roomsRange()[0]
+        'max rooms': rentalLayer.roomsRange()[1]
     )
 
     sliderChanged($("#slider-rooms-element").slider("values"))
@@ -467,6 +466,10 @@ if Modernizr.svg and Modernizr.inlinesvg
     $("#show-shared").attr 'checked', rentalLayer.allowShared()
     $("#show-shared").click ->
       rentalLayer.allowShared(this.checked)
+      if this.checked
+        trackEvent 'shared selected'
+      else
+        trackEvent 'private selected'
 
   loadBusRoutes = () ->
     d3.json 'data/uvic_transit.json', (json) ->
@@ -486,6 +489,23 @@ if Modernizr.svg and Modernizr.inlinesvg
 
     loadBusRoutes()
     loadRentals()
+    
+    trackEvent('RentalMap loaded')
+  
+  $(window).unload( () ->
+    trackEvent('RentalMap closed')
+  )
+  
+  addthis.addEventListener('addthis.menu.share', (evt) ->
+    trackEvent 'AddThis', evt.data 
+  );
+  
+  # Set to track outbound links from the site
+  $("a[rel*='external']").click(->
+    link = $(this)
+    recordEvent('External Link',link.text(),link.attr('href'))
+    trackEvent('External Link',{"Link Text":link.text(),"url":link.attr('href')})
+  )
 
 else
   $('#unsupportedBrowser').show();

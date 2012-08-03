@@ -37,10 +37,6 @@
   window.setVariable = setVariable;
 
   if (Modernizr.svg && Modernizr.inlinesvg) {
-    trackEvent('RentalMap loaded');
-    $(window).unload(function() {
-      return trackEvent('RentalMap closed');
-    });
     if ($(window).height() < 500 || $(window).width() < 500) {
       $(".desktop").hide();
     }
@@ -48,26 +44,19 @@
       $(".github").hide();
     }
     $(".header").show();
-    $("a[rel*='external']").click(function() {
-      var link;
-      link = $(this);
-      recordEvent('External Link', link.text(), link.attr('href'));
-      return trackEvent('External Link', {
-        "Link Text": link.text(),
-        "url": link.attr('href')
-      });
-    });
     headerToggle = function(element) {
       if ($("#standard-options").is(":visible")) {
         $("#standard-options").hide("slow");
-        return $(element).button("option", "icons", {
+        $(element).button("option", "icons", {
           primary: "ui-icon-triangle-1-s"
         });
+        return trackEvent('hid options');
       } else {
         $("#standard-options").show("slow");
-        return $(element).button("option", "icons", {
+        $(element).button("option", "icons", {
           primary: "ui-icon-triangle-1-n"
         });
+        return trackEvent('show options');
       }
     };
     $(".header-expand").button({
@@ -81,10 +70,12 @@
     toggleAdditional = function() {
       if ($("#additional-notices").is(":visible")) {
         $("#additional-notices").hide("slow");
-        return $("a#additional-expand").text("additional notices");
+        $("a#additional-expand").text("additional notices");
+        return trackEvent('hid notices');
       } else {
         $("#additional-notices").show("slow");
-        return $("a#additional-expand").text("less notices");
+        $("a#additional-expand").text("less notices");
+        return trackEvent('show notices');
       }
     };
     $("a#additional-expand").click(function() {
@@ -645,6 +636,11 @@
         max: 2500,
         slide: function(event, ui) {
           return sliderChanged(ui.value);
+        },
+        stop: function(event, ui) {
+          return trackEvent('distance changed', {
+            distance: distanceLayer.distanceInMeters()
+          });
         }
       });
       return sliderChanged($("#slider-distance-element").slider("value"));
@@ -663,6 +659,12 @@
         max: 3000,
         slide: function(event, ui) {
           return sliderChanged(ui.values);
+        },
+        stop: function(event, ui) {
+          return trackEvent('price changed', {
+            'low price': rentalLayer.priceRange()[0],
+            'high price': rentalLayer.priceRange()[1]
+          });
         }
       });
       return sliderChanged($("#slider-price-element").slider("values"));
@@ -680,6 +682,12 @@
         max: 5,
         slide: function(event, ui) {
           return sliderChanged(ui.values);
+        },
+        stop: function(event, ui) {
+          return trackEvent('# rooms changed', {
+            'min rooms': rentalLayer.roomsRange()[0],
+            'max rooms': rentalLayer.roomsRange()[1]
+          });
         }
       });
       return sliderChanged($("#slider-rooms-element").slider("values"));
@@ -687,7 +695,12 @@
     setupSharedCheckbox = function() {
       $("#show-shared").attr('checked', rentalLayer.allowShared());
       return $("#show-shared").click(function() {
-        return rentalLayer.allowShared(this.checked);
+        rentalLayer.allowShared(this.checked);
+        if (this.checked) {
+          return trackEvent('shared selected');
+        } else {
+          return trackEvent('private selected');
+        }
       });
     };
     loadBusRoutes = function() {
@@ -708,8 +721,24 @@
       setupRoomsSlider();
       setupSharedCheckbox();
       loadBusRoutes();
-      return loadRentals();
+      loadRentals();
+      return trackEvent('RentalMap loaded');
     })();
+    $(window).unload(function() {
+      return trackEvent('RentalMap closed');
+    });
+    addthis.addEventListener('addthis.menu.share', function(evt) {
+      return trackEvent('AddThis', evt.data);
+    });
+    $("a[rel*='external']").click(function() {
+      var link;
+      link = $(this);
+      recordEvent('External Link', link.text(), link.attr('href'));
+      return trackEvent('External Link', {
+        "Link Text": link.text(),
+        "url": link.attr('href')
+      });
+    });
   } else {
     $('#unsupportedBrowser').show();
     $('.regular').hide();
