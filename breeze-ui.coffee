@@ -1,3 +1,24 @@
+trackEvent = (name, values, callback = null) ->
+  mixpanel.track name, values
+  if callback
+    callback()
+  
+recordOutboundLink = (link, name, values) ->
+  recordEvent name, values.source, values.url
+  trackEvent name, values, () -> window.open(link.href,"_blank")
+window.recordOutboundLink = recordOutboundLink
+
+recordEvent = (category, action, label) ->
+  _gat._getTrackerByName()._trackEvent category, action, label
+window.recordEvent = recordEvent
+
+setVariable = (index, name, value) ->
+  # This custom var is set to slot #1.  Required parameter.
+  # The name acts as a kind of category for the user activity.  Required parameter.
+  # This value of the custom variable.  Required parameter.
+  _gaq.push ["_setCustomVar", index, name, value, 2] # Sets the scope to session-level.  Optional parameter.
+window.setVariable = setVariable
+
 if Modernizr.svg and Modernizr.inlinesvg
   if $(window).height() < 500 or $(window).width() < 500
     $(".desktop").hide()
@@ -10,23 +31,8 @@ if Modernizr.svg and Modernizr.inlinesvg
   $("a[rel*='external']").click(->
     link = $(this)
     recordEvent('External Link',link.text(),link.attr('href'))
+    trackEvent('External Link',{"Link Text":link.text(),"url":link.attr('href')})
   )
-  
-  recordOutboundLink = (link, category, action, label) ->
-    recordEvent category, action, label
-    setTimeout "window.open(\"" + link.href + "\",\"_blank\")", 100
-  window.recordOutboundLink = recordOutboundLink
-  
-  recordEvent = (category, action, label) ->
-    _gat._getTrackerByName()._trackEvent category, action, label
-  window.recordEvent = recordEvent
-  
-  setVariable = (index, name, value) ->
-    # This custom var is set to slot #1.  Required parameter.
-    # The name acts as a kind of category for the user activity.  Required parameter.
-    # This value of the custom variable.  Required parameter.
-    _gaq.push ["_setCustomVar", index, name, value, 2] # Sets the scope to session-level.  Optional parameter.
-  window.setVariable = setVariable
   
   headerToggle = (element) ->
     if $("#standard-options").is(":visible")
@@ -352,8 +358,8 @@ if Modernizr.svg and Modernizr.inlinesvg
 
       output = ""
       if rental.image_url
-        output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.source + "', '" + rental.url + "');return false;\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>"
-      output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', '" + rental.source + "', '" + rental.url + "');return false;\">View Original Listing</a>"
+        output = output + "<a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', {\"source\":\"" + rental.source + "\", \"url\":\"" + rental.url + "\"})\"><img class=\"rental-img\" src=\""+ rental.image_url + "\"></a>"
+      output = output + rental.source + ", " + rental.type + " <br/><ul>" + listings.join("") + "</ul><br /><a href=\"" + rental.url + "\" target=\"_blank\" onClick=\"recordOutboundLink(this, 'Outbound Links', {'source':'" + rental.source + "', 'url':'" + rental.url + "'});return false;\">View Original Listing</a>"
       output
 
     addRentals: (rentals) ->
@@ -375,6 +381,7 @@ if Modernizr.svg and Modernizr.inlinesvg
         $.cookie("viewed-listings", JSON.stringify(@viewedIndices), { expires: 30 })
         @selector.selectAll("g").select("rect").attr("class", @rentalClass)
         recordEvent('Rental View',rental.source,rental.url)
+        trackEvent('Rental View',{"Rental Source":rental.source,"url":rental.url})
       )
 
       $(".rental").qtip(
@@ -478,3 +485,4 @@ else
   $('#unsupportedBrowser').show();
   $('.regular').hide();
   recordEvent('Unsupported Browser','No SVG' ,navigator.userAgent)
+  trackEvent('Unsupported Browser',{"Browser":navigator.userAgent})
