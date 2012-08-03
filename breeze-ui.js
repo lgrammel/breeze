@@ -37,6 +37,10 @@
   window.setVariable = setVariable;
 
   if (Modernizr.svg && Modernizr.inlinesvg) {
+    trackEvent('RentalMap loaded');
+    $(window).unload(function() {
+      return trackEvent('RentalMap closed');
+    });
     if ($(window).height() < 500 || $(window).width() < 500) {
       $(".desktop").hide();
     }

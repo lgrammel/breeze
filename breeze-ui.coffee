@@ -20,6 +20,12 @@ setVariable = (index, name, value) ->
 window.setVariable = setVariable
 
 if Modernizr.svg and Modernizr.inlinesvg
+  trackEvent('RentalMap loaded')
+  
+  $(window).unload( () ->
+    trackEvent('RentalMap closed')
+  )
+  
   if $(window).height() < 500 or $(window).width() < 500
     $(".desktop").hide()
   if Modernizr.touch
