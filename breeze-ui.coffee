@@ -380,7 +380,16 @@ if Modernizr.svg and Modernizr.inlinesvg
         $.cookie("viewed-listings", JSON.stringify(@viewedIndices), { expires: 30 })
         @selector.selectAll("g").select("rect").attr("class", @rentalClass)
         recordEvent('Rental View',rental.source,rental.url)
-        trackEvent('Rental View',{"Rental Source":rental.source,"url":rental.url})
+        trackEvent('Rental View',
+          "Rental Source":rental.source
+          "url":rental.url
+          "min price":priceRange[0]
+          "max price":priceRange[1]
+          "min rooms":roomsRange[0]
+          "max rooms":roomsRange[1]
+          "shared allowed":allowShared
+          "zoom level":@zoomLevel()
+        )
       )
 
       $(".rental").qtip(

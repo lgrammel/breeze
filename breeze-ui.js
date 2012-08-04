@@ -599,7 +599,13 @@
           recordEvent('Rental View', rental.source, rental.url);
           return trackEvent('Rental View', {
             "Rental Source": rental.source,
-            "url": rental.url
+            "url": rental.url,
+            "min price": priceRange[0],
+            "max price": priceRange[1],
+            "min rooms": roomsRange[0],
+            "max rooms": roomsRange[1],
+            "shared allowed": allowShared,
+            "zoom level": _this.zoomLevel()
           });
         });
         return $(".rental").qtip({
