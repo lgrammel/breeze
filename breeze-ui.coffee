@@ -78,7 +78,7 @@ if Modernizr.svg and Modernizr.inlinesvg
   class Layer
     zoomLevel: -> @map.zoom()
     
-    @prevZoom = 0    
+    @prevZoom = 13    
     @distance = 0
 
     pixelDistance: ->
@@ -215,6 +215,8 @@ if Modernizr.svg and Modernizr.inlinesvg
     update: ->
       # If the zoom level changed, re cluster the stops
       if @zoomLevel() != @prevZoom or (@stops and @prevNumStops != @stops.length)
+        if @prevZoom and @zoomLevel() != @prevZoom
+          trackEvent 'Zoom level changed', {'Zoom level':@zoomLevel()}
         @prevNumStops = @stops.length
         @prevZoom = @zoomLevel()
         

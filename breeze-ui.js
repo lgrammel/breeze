@@ -95,7 +95,7 @@
         return this.map.zoom();
       };
 
-      Layer.prevZoom = 0;
+      Layer.prevZoom = 13;
 
       Layer.distance = 0;
 
@@ -337,6 +337,11 @@
         var marker,
           _this = this;
         if (this.zoomLevel() !== this.prevZoom || (this.stops && this.prevNumStops !== this.stops.length)) {
+          if (this.prevZoom && this.zoomLevel() !== this.prevZoom) {
+            trackEvent('Zoom level changed', {
+              'Zoom level': this.zoomLevel()
+            });
+          }
           this.prevNumStops = this.stops.length;
           this.prevZoom = this.zoomLevel();
           this.clusters = this.cluster(this.stops, 10);
