@@ -517,9 +517,12 @@ if Modernizr.svg and Modernizr.inlinesvg
     recordEvent('External Link',link.text(),link.attr('href'))
     trackEvent('External Link',{"Link Text":link.text(),"url":link.attr('href')})
   )
+  
+  # Hide the default loading dialog, in case it hasn't been covered yet
+  $("#loading").hide()
 
 else
-  $('#unsupportedBrowser').show();
-  $('.regular').hide();
+  $('#unsupportedBrowser').show()
+  $('.regular').hide()
   recordEvent('Unsupported Browser','No SVG' ,navigator.userAgent)
   trackEvent('Unsupported Browser',{"Browser":navigator.userAgent})

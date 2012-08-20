@@ -750,6 +750,7 @@
         "url": link.attr('href')
       });
     });
+    $("#loading").hide();
   } else {
     $('#unsupportedBrowser').show();
     $('.regular').hide();
